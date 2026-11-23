@@ -39,6 +39,11 @@ contextBridge.exposeInMainWorld("ogfn", {
   selectVersion: (id) => ipcRenderer.invoke("version:select", id),
   removeVersion: (id) => ipcRenderer.invoke("version:remove", id),
 
+  // Matchmaking
+  queue1v1: (region) => ipcRenderer.invoke("matchmaking:queue", region),
+  matchmakingStatus: () => ipcRenderer.invoke("matchmaking:status"),
+  cancel1v1: () => ipcRenderer.invoke("matchmaking:cancel"),
+
   // Backend
   backendStatus: () => ipcRenderer.invoke("backend:status"),
   startBackend: () => ipcRenderer.invoke("backend:start"),
