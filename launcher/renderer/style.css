@@ -748,3 +748,50 @@ body:has(#launcher:not(.hidden)) .titlebar { left: 58px; }
 
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes drift { from { transform: scale(1.05) translate(0,0); } to { transform: scale(1.12) translate(-2%, -1%); } }
+
+
+/* 1v1 matchmaking */
+.matchmaking-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px;
+}
+.matchmaking-card {
+  width: min(100%, 560px);
+  padding: 34px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  background: rgba(12,16,24,.88);
+  box-shadow: 0 18px 60px rgba(0,0,0,.28);
+}
+.matchmaking-kicker {
+  margin-bottom: 12px;
+  color: #9bb7ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+.matchmaking-status {
+  margin: 28px 0 14px;
+  padding: 18px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+}
+.matchmaking-opponent {
+  margin: 12px 0;
+  color: #a9e7bb;
+  text-align: center;
+}
+.matchmaking-actions {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}
+.matchmaking-actions .btn {
+  min-height: 44px;
+  flex: 1;
+}
