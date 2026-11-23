@@ -228,6 +228,80 @@ window.ogfn.onGameState((state) => {
   refreshAnnouncement();
 });
 
+
+/* ---- 1v1 matchmaking ---- */
+let matchmakingPoll = null;
+let matchmakingBusy = false;
+
+function setMatchmakingUi(state) {
+  const status = $("#matchmakingStatus");
+  const opponent = $("#matchmakingOpponent");
+  const queueBtn = $("#matchmakingQueueBtn");
+  const cancelBtn = $("#matchmakingCancelBtn");
+  const isQueued = state?.status === "queued";
+  const isMatched = state?.status === "matched" && state.match;
+
+  if (isMatched) {
+    status.textContent = "Opponent found!";
+    opponent.classList.remove("hidden");
+    opponent.textContent = `Match ready · ${state.match.players.map((p) => p.displayName).join(" vs ")}`;
+    queueBtn.disabled = true;
+    cancelBtn.disabled = true;
+  } else if (isQueued) {
+    status.textContent = "Searching for an opponent…";
+    opponent.classList.add("hidden");
+    queueBtn.disabled = true;
+    cancelBtn.disabled = false;
+  } else {
+    status.textContent = "Ready to search";
+    opponent.classList.add("hidden");
+    queueBtn.disabled = matchmakingBusy;
+    cancelBtn.disabled = true;
+  }
+}
+
+async function refreshMatchmakingStatus() {
+  const result = await window.ogfn.matchmakingStatus();
+  if (!result?.ok) {
+    $("#matchmakingStatus").textContent = result?.error || "Backend unavailable";
+    return;
+  }
+  setMatchmakingUi(result);
+}
+
+$("#matchmakingQueueBtn").addEventListener("click", async () => {
+  if (matchmakingBusy) return;
+  matchmakingBusy = true;
+  $("#matchmakingQueueBtn").disabled = true;
+  $("#matchmakingStatus").textContent = "Joining queue…";
+  const result = await window.ogfn.queue1v1("auto");
+  matchmakingBusy = false;
+  if (!result?.ok) {
+    $("#matchmakingStatus").textContent = result?.error || "Could not join the queue";
+    $("#matchmakingQueueBtn").disabled = false;
+    return;
+  }
+  setMatchmakingUi(result);
+  if (result.status === "queued" && !matchmakingPoll) {
+    matchmakingPoll = setInterval(refreshMatchmakingStatus, 2000);
+  }
+  if (result.status === "matched" && matchmakingPoll) {
+    clearInterval(matchmakingPoll);
+    matchmakingPoll = null;
+  }
+});
+
+$("#matchmakingCancelBtn").addEventListener("click", async () => {
+  const result = await window.ogfn.cancel1v1();
+  if (!result?.ok) {
+    $("#matchmakingStatus").textContent = result?.error || "Could not cancel search";
+    return;
+  }
+  if (matchmakingPoll) clearInterval(matchmakingPoll);
+  matchmakingPoll = null;
+  setMatchmakingUi(result);
+});
+
 // ---- Settings ----
 async function refreshServerUi() {
   const info = await window.ogfn.serverInfo();
