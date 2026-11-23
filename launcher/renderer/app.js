@@ -267,6 +267,12 @@ async function refreshMatchmakingStatus() {
     return;
   }
   setMatchmakingUi(result);
+  if (result.status === "queued" && !matchmakingPoll) {
+    matchmakingPoll = setInterval(refreshMatchmakingStatus, 2000);
+  } else if (result.status !== "queued" && matchmakingPoll) {
+    clearInterval(matchmakingPoll);
+    matchmakingPoll = null;
+  }
 }
 
 $("#matchmakingQueueBtn").addEventListener("click", async () => {
