@@ -58,7 +58,9 @@ app.use((req, res) => {
   });
 });
 
-const { host, port } = config.server;
+const host = process.env.HOST || config.server.host;
+// Railway assigns the public HTTP listener port through PORT.
+const port = parseInt(process.env.PORT || String(config.server.port), 10);
 const httpServer = app.listen(port, host, () => {
   log.backend(`OGFN HTTP backend listening on http://${host}:${port}`);
 });
