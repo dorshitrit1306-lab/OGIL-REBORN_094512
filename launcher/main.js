@@ -942,7 +942,8 @@ function backendRequest(method, pathName, body, extraHeaders = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(base + pathName);
     const payload = body ? JSON.stringify(body) : null;
-    const req = http.request(
+    const transport = url.protocol === "https:" ? https : http;
+    const req = transport.request(
       {
         method,
         hostname: url.hostname,
@@ -967,7 +968,7 @@ function backendRequest(method, pathName, body, extraHeaders = {}) {
       }
     );
     req.on("error", reject);
-    req.setTimeout(2500, () => {
+    req.setTimeout(15000, () => {
       req.destroy();
       reject(new Error("timeout"));
     });
