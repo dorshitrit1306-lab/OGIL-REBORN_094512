@@ -107,6 +107,9 @@
           <button class="rail-btn" data-view="changelog" data-tip="News">
             <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M8 9h8M8 13h8M8 17h5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
           </button>
+          <button class="rail-btn" data-view="matchmaking" data-tip="1v1 Matchmaking" aria-label="1v1 Matchmaking">
+            <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.75"/><circle cx="16" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M2.5 20c.4-3.4 2.2-5 5.5-5m8 0c3.3 0 5.1 1.6 5.5 5M9 17l2 2 4-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
           <button class="rail-btn" data-view="cosmetics" data-tip="Cosmetics">
             <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.8H21l-5.5 4.2 2.1 6.5L12 16.8 6.4 19.5l2.1-6.5L3 8.8h6.8L12 2z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></svg>
           </button>
@@ -172,6 +175,22 @@
             </div>
           </div>
           <div id="seasonGrid" class="season-grid"></div>
+        </div>
+
+        <!-- 1V1 MATCHMAKING -->
+        <div class="stage-view panel-view matchmaking-view" id="view-matchmaking">
+          <div class="matchmaking-card">
+            <div class="matchmaking-kicker">OGIL REBORN · MULTIPLAYER</div>
+            <h2 class="view-title">1v1 Matchmaking</h2>
+            <p class="lib-hint">Find another player who is searching for a 1v1 match.</p>
+            <div id="matchmakingStatus" class="matchmaking-status" role="status">Ready to search</div>
+            <div id="matchmakingOpponent" class="matchmaking-opponent hidden"></div>
+            <div class="matchmaking-actions">
+              <button type="button" id="matchmakingQueueBtn" class="btn primary">Find a 1v1 match</button>
+              <button type="button" id="matchmakingCancelBtn" class="btn btn-ghost" disabled>Cancel search</button>
+            </div>
+            <p class="section-hint">This currently pairs accounts in the backend queue. Entering an actual game requires a compatible, authorized game server.</p>
+          </div>
         </div>
 
         <!-- NEWS -->
