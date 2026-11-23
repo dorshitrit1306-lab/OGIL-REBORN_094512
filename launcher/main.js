@@ -937,7 +937,7 @@ ipcMain.handle("announcement:get", async () => {
 });
 
 // ---- Small HTTP helper (GET/POST JSON to the backend) ----
-function backendRequest(method, pathName, body) {
+function backendRequest(method, pathName, body, extraHeaders = {}) {
   const base = getBackendBase();
   return new Promise((resolve, reject) => {
     const url = new URL(base + pathName);
@@ -950,6 +950,7 @@ function backendRequest(method, pathName, body) {
         path: url.pathname + url.search,
         headers: {
           "Content-Type": "application/json",
+          ...extraHeaders,
           ...(payload ? { "Content-Length": Buffer.byteLength(payload) } : {}),
         },
       },
@@ -974,6 +975,53 @@ function backendRequest(method, pathName, body) {
     req.end();
   });
 }
+
+
+let matchmakingAccessToken = null;
+
+async function getMatchmakingAccessToken() {
+  if (matchmakingAccessToken) return matchmakingAccessToken;
+  const cfg = loadConfig();
+  const auth = await backendRequest("POST", "/account/api/oauth/token", {
+    grant_type: "password",
+    username: cfg.username || "VelocityPlayer",
+  });
+  if (!auth.access_token) throw new Error(auth.errorMessage || "Could not authenticate with the backend.");
+  matchmakingAccessToken = auth.access_token;
+  return matchmakingAccessToken;
+}
+
+async function matchmakingRequest(method, pathName, body) {
+  const token = await getMatchmakingAccessToken();
+  return backendRequest(method, pathName, body, { Authorization: `Bearer ${token}` });
+}
+
+ipcMain.handle("matchmaking:queue", async (_event, region = "auto") => {
+  try {
+    return await matchmakingRequest("POST", "/api/matchmaking/1v1/queue", { region });
+  } catch (error) {
+    matchmakingAccessToken = null;
+    return { ok: false, error: error.message || "Could not join the 1v1 queue." };
+  }
+});
+
+ipcMain.handle("matchmaking:status", async () => {
+  try {
+    return await matchmakingRequest("GET", "/api/matchmaking/1v1/status");
+  } catch (error) {
+    matchmakingAccessToken = null;
+    return { ok: false, error: error.message || "Could not check matchmaking status." };
+  }
+});
+
+ipcMain.handle("matchmaking:cancel", async () => {
+  try {
+    return await matchmakingRequest("DELETE", "/api/matchmaking/1v1/queue");
+  } catch (error) {
+    matchmakingAccessToken = null;
+    return { ok: false, error: error.message || "Could not cancel matchmaking." };
+  }
+});
 
 // Resolve the current username to a stable backend account id.
 async function resolveAccountId() {
