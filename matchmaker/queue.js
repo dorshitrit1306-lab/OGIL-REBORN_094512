@@ -29,6 +29,7 @@ class MatchmakingQueue {
 
     if (opponentIndex !== -1) {
       const [opponent] = queue.splice(opponentIndex, 1);
+      if (opponent.timer) clearTimeout(opponent.timer);
       this.playerModes.delete(opponent.playerId);
       if (queue.length === 0) this.queues.delete(mode);
       else this.queues.set(mode, queue);
