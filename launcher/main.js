@@ -1240,6 +1240,7 @@ function startBackend() {
       VELOCITY_DATA_DIR: path.join(app.getPath("userData"), "data"),
       VELOCITY_CONFIG_FILE: persistentConfigPath,
       VELOCITY_SHOP_CACHE: path.join(app.getPath("userData"), "data", "shop-cache.json"),
+      VELOCITY_SHOP_COSMETICS_FILE: path.join(app.getPath("userData"), "data", "shop-cosmetics.json"),
       VELOCITY_CUSTOM_COSMETICS_FILE: path.join(app.getPath("userData"), "data", "custom-cosmetics.json"),
       VELOCITY_CUSTOM_PAK_REGISTRY: path.join(app.getPath("userData"), "data", "custom-paks.json"),
       VELOCITY_FRIENDS_STORE: path.join(app.getPath("userData"), "data", "friends-graph.json"),
