@@ -29,6 +29,9 @@ jobs:
           node --check test/itemShopCustomStorefronts.test.js
           node --check test/panelRouteSecurity.test.js
           node --check structs/shopStaff.js
+          node --check structs/partyAccess.js
+          node --check routes/party.js
+          node --check test/partyRouteSecurity.test.js
           node --check structs/gameRewards.js
           node --check structs/arenaModes.js
           node --check structs/gameserver.js
