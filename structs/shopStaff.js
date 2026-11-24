@@ -27,6 +27,50 @@ function safeEqual(a, b) {
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
+
+function ownerKeyFilePath() {
+  const dataDir = process.env.VELOCITY_DATA_DIR || path.join(__dirname, "..", "data");
+  return process.env.OGFN_PANEL_KEY_FILE || path.join(dataDir, "Owner-Panel-Key.txt");
+}
+
+/**
+ * Create a strong first-run Owner panel key when no environment/config key
+ * exists. The plaintext key is stored only in the local user-data folder.
+ */
+function ensureOwnerToken() {
+  if (String(process.env.OGFN_PANEL_TOKEN || "").trim()) {
+    return { configured: true, generated: false, keyFilePath: null };
+  }
+
+  let generated = false;
+  if (!String(config.panelToken || "").trim()) {
+    config.panelToken = crypto.randomBytes(32).toString("hex");
+    fs.mkdirSync(path.dirname(configPath), { recursive: true });
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    generated = true;
+  }
+
+  const keyFilePath = ownerKeyFilePath();
+  fs.mkdirSync(path.dirname(keyFilePath), { recursive: true });
+  if (!fs.existsSync(keyFilePath)) {
+    fs.writeFileSync(
+      keyFilePath,
+      [
+        "OGIL REBORN — OWNER PANEL KEY",
+        "",
+        "Enter this key in the Owner or Partner key field in the control panel.",
+        "Keep this file private. Anyone with this key can manage the server.",
+        "",
+        config.panelToken,
+        "",
+      ].join("\\n"),
+      { mode: 0o600 }
+    );
+  }
+
+  return { configured: true, generated, keyFilePath };
+}
+
 function ownerToken() {
   return String(process.env.OGFN_PANEL_TOKEN || config.panelToken || "");
 }
@@ -94,4 +138,4 @@ function listPartners() {
   }));
 }
 
-module.exports = { authenticate, createPartner, updatePartner, removePartner, listPartners };
+module.exports = { authenticate, createPartner, updatePartner, removePartner, listPartners, ensureOwnerToken };
