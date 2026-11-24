@@ -134,7 +134,7 @@ app.get("/fortnite/api/game/v2/matchmakingservice/ticket/player/:accountId", (re
   const accountId = req.params.accountId;
   const bucketId = req.query.bucketId || "";
   const buildUniqueId = buildUniqueIdFromBucket(bucketId);
-  const playlist = toPlaylistName(bucketId);
+  const playlist = resolveMatchPlaylist(bucketId, accountId);
   const region = regionFromBucket(bucketId);
 
   lastMatchmakingAccount = accountId;
@@ -201,4 +201,16 @@ app.post("/fortnite/api/matchmaking/session/matchMakingRequest", (req, res) => {
   res.json([]);
 });
 
+// OGIL ARENA uses the account's saved SOLO/DUOS/SQUADS choice only when
+// the client explicitly requests the OGIL ARENA bucket. Other queues retain
+// the playlist requested by the client.
+function resolveMatchPlaylist(bucketId, accountId) {
+  if (/ogil[_-]?arena/i.test(String(bucketId || ""))) {
+    const selection = require("../structs/arenaModes").getSelection(accountId);
+    return selection?.playlist || "Playlist_DefaultSolo";
+  }
+  return toPlaylistName(bucketId);
+}
+
 module.exports = app;
+module.exports.resolveMatchPlaylist = resolveMatchPlaylist;
