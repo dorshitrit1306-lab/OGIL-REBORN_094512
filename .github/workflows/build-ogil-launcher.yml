@@ -8,9 +8,15 @@ on:
       - "launcher/**"
       - "routes/**"
       - "structs/**"
+      - "config/**"
+      - "test/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/build-ogil-launcher.yml"
+
+concurrency:
+  group: ogil-reborn-windows-build
+  cancel-in-progress: true
 
 permissions:
   contents: read
