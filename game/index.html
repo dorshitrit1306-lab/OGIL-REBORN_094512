@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OGIL Reborn</title>
+<style>
+:root{color-scheme:dark;font-family:Arial,sans-serif}*{box-sizing:border-box}body{margin:0;background:#080d18;color:#fff;overflow:hidden}
+canvas{display:block;width:100vw;height:100vh;background:#101d2b}
+.hud{position:fixed;inset:0;pointer-events:none;padding:22px;display:flex;justify-content:space-between;align-items:flex-start;text-shadow:0 2px 8px #000}
+.brand{font-weight:900;letter-spacing:3px;font-size:20px}.sub{font-size:11px;color:#9bb3c9;letter-spacing:2px;margin-top:5px}
+.stats{display:flex;gap:10px}.stat{background:#07111dcc;border:1px solid #52718b;padding:10px 14px;border-radius:8px;min-width:92px}.stat b{display:block;font-size:20px}.stat span{font-size:10px;color:#9bb3c9;letter-spacing:1px}
+.help{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#07111dcc;border:1px solid #52718b;border-radius:8px;padding:10px 16px;color:#c5d7e7;font-size:12px;white-space:nowrap}
+.overlay{position:fixed;inset:0;display:grid;place-items:center;background:#050a12cc}.panel{width:min(480px,90vw);padding:34px;background:linear-gradient(145deg,#14283a,#09121f);border:1px solid #5d89a8;border-radius:16px;text-align:center;box-shadow:0 20px 90px #0009}.panel h1{font-size:42px;letter-spacing:5px;margin:0 0 8px}.panel p{color:#afc4d5;line-height:1.6}.panel button{margin-top:14px;border:0;border-radius:8px;background:#49c7ee;color:#04111a;font-weight:900;letter-spacing:2px;padding:15px 30px;cursor:pointer}.panel button:hover{filter:brightness(1.12)}.hidden{display:none}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud"><div><div class="brand">OGIL REBORN</div><div class="sub">ORIGINAL ARENA · PROTOTYPE 0.1</div></div><div class="stats"><div class="stat"><b id="score">0</b><span>ENERGY</span></div><div class="stat"><b id="time">90</b><span>TIME</span></div><div class="stat"><b id="health">100</b><span>SHIELD</span></div></div></div>
+<div class="help">WASD / ARROWS · MOVE &nbsp; • &nbsp; MOUSE · AIM &nbsp; • &nbsp; CLICK · PULSE</div>
+<div class="overlay" id="menu"><div class="panel"><h1>OGIL REBORN</h1><div class="sub">WELCOME TO YOUR OWN ARENA</div><p>Collect energy orbs, avoid the training drones, and see how long you can hold the arena.</p><button id="start">ENTER ARENA</button></div></div>
+<div class="overlay hidden" id="end"><div class="panel"><h1>ROUND OVER</h1><p id="result"></p><button id="again">PLAY AGAIN</button></div></div>
+<script>
+(()=>{
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);let w=0,h=0,dpr=1,active=false,last=0,elapsed=0,score=0,health=100,player,keys={},mouse={x:0,y:0,down:false},shots=[],drones=[],orbs=[],decor=[];
+function resize(){dpr=Math.min(devicePixelRatio||1,2);w=innerWidth;h=innerHeight;canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);if(player){player.x=Math.min(w-40,Math.max(40,player.x));player.y=Math.min(h-40,Math.max(40,player.y));}}
+addEventListener('resize',resize);resize();
+function reset(){elapsed=0;score=0;health=100;player={x:w/2,y:h/2,r:15,speed:245,fire:0,invuln:0};shots=[];drones=[];orbs=[];decor=[];for(let i=0;i<12;i++)decor.push({x:Math.random()*w,y:Math.random()*h,r:18+Math.random()*30});for(let i=0;i<5;i++)spawnDrone();for(let i=0;i<8;i++)spawnOrb();updateHud();}
+function spawnDrone(){let a=Math.random()*Math.PI*2;drones.push({x:Math.random()*w,y:Math.random()*h,r:14,speed:55+Math.random()*35,phase:Math.random()*6});}
+function spawnOrb(){orbs.push({x:40+Math.random()*(w-80),y:40+Math.random()*(h-80),r:7,p:Math.random()*6});}
+function updateHud(){$('score').textContent=score;$('health').textContent=Math.max(0,Math.round(health));$('time').textContent=Math.max(0,90-Math.floor(elapsed));}
+function start(){reset();active=true;$('menu').classList.add('hidden');$('end').classList.add('hidden');last=performance.now();requestAnimationFrame(loop);}
+$('start').onclick=start;$('again').onclick=start;
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+canvas.addEventListener('pointermove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+canvas.addEventListener('pointerdown',()=>mouse.down=true);addEventListener('pointerup',()=>mouse.down=false);
+function loop(now){if(!active)return;let dt=Math.min((now-last)/1000,.035);last=now;elapsed+=dt;step(dt);draw();updateHud();if(health<=0||elapsed>=90){active=false;$('result').textContent='Energy collected: '+score+' · Time survived: '+Math.min(90,Math.floor(elapsed))+'s';$('end').classList.remove('hidden');return;}requestAnimationFrame(loop);}
+function step(dt){let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0),len=Math.hypot(dx,dy)||1;player.x=Math.max(20,Math.min(w-20,player.x+dx/len*player.speed*dt));player.y=Math.max(20,Math.min(h-20,player.y+dy/len*player.speed*dt));player.fire-=dt;player.invuln-=dt;
+if(mouse.down&&player.fire<=0){let a=Math.atan2(mouse.y-player.y,mouse.x-player.x);shots.push({x:player.x+Math.cos(a)*18,y:player.y+Math.sin(a)*18,vx:Math.cos(a)*540,vy:Math.sin(a)*540,life:1.1});player.fire=.18;}
+for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;}shots=shots.filter(s=>s.life>0&&s.x>-20&&s.x<w+20&&s.y>-20&&s.y<h+20);
+for(const d of drones){let a=Math.atan2(player.y-d.y,player.x-d.x);d.x+=Math.cos(a)*d.speed*dt;d.y+=Math.sin(a)*d.speed*dt;d.phase+=dt;if(Math.hypot(player.x-d.x,player.y-d.y)<player.r+d.r&&player.invuln<=0){health-=12;player.invuln=.65;}}
+for(const s of shots){for(const d of drones){if(!d.gone&&Math.hypot(s.x-d.x,s.y-d.y)<d.r+5){d.gone=true;s.life=0;score+=25;}}}drones=drones.filter(d=>!d.gone);while(drones.length<5+Math.floor(elapsed/18))spawnDrone();
+for(const o of orbs){o.p+=dt;if(Math.hypot(player.x-o.x,player.y-o.y)<player.r+o.r+3){o.gone=true;score+=10;}}orbs=orbs.filter(o=>!o.gone);while(orbs.length<8)spawnOrb();}
+function draw(){ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1724';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#183148';ctx.lineWidth=1;for(let x=0;x<w;x+=48){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}for(let y=0;y<h;y+=48){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+for(const d of decor){ctx.fillStyle='#142b3a';ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#23465c';ctx.stroke();}
+for(const o of orbs){ctx.fillStyle='#5ce6ff';ctx.shadowColor='#5ce6ff';ctx.shadowBlur=18+Math.sin(o.p*4)*5;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+for(const s of shots){ctx.fillStyle='#fff2a6';ctx.shadowColor='#ffe77a';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+for(const d of drones){ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.phase);ctx.fillStyle='#ff9d63';ctx.strokeStyle='#ffe0c4';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-11,-11,22,22,5);ctx.fill();ctx.stroke();ctx.fillStyle='#14202a';ctx.fillRect(-6,-3,12,5);ctx.restore();}
+if(player){let a=Math.atan2(mouse.y-player.y,mouse.x-player.x);ctx.strokeStyle='#8be9ff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(player.x,player.y);ctx.lineTo(player.x+Math.cos(a)*27,player.y+Math.sin(a)*27);ctx.stroke();ctx.fillStyle=player.invuln>0?'#fff':'#54c9ee';ctx.shadowColor='#49c7ee';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#e1faff';ctx.lineWidth=2;ctx.stroke();}}
+})();
+</script>
+</body></html>
