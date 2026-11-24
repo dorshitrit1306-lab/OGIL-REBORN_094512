@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const FILE = path.join(__dirname, "..", "data", "shop-settings.json");
+const FILE = process.env.OGFN_SHOP_SETTINGS_FILE || path.join(__dirname, "..", "data", "shop-settings.json");
 const ZONE = "Asia/Jerusalem";
 
 function defaultState() {
