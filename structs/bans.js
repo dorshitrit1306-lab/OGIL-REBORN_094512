@@ -47,7 +47,7 @@ function banAccount({ accountId, username, reason, bannedBy }) {
   const id = String(accountId || "").toLowerCase();
   if (!id) return { ok: false, reason: "accountId is required." };
 
-  const config = require("../config/config.json");
+  const config = require("../utils/config").loadConfig();
   const ownerId = config.owner?.accountId?.toLowerCase();
   if (ownerId && id === ownerId) {
     return { ok: false, reason: "Cannot ban the configured server owner." };
