@@ -33,3 +33,37 @@ test("Friends routes cannot act on another account identifier", () => {
   assert.equal(status, 403);
   assert.equal(nextCalled, false);
 });
+
+test("a valid session is attached to the Friends request", () => {
+  const { tokenSessions } = require("../routes/auth");
+  const token = "friends-security-test-token";
+  tokenSessions.set(token, {
+    accountId: "11111111111111111111111111111111",
+    displayName: "TestPlayer",
+  });
+
+  let nextCalled = false;
+  let attached = null;
+  router.authenticatedFriendAccount(
+    { headers: { authorization: "Bearer " + token } },
+    { status(code) { throw new Error("Unexpected status " + code); }, json() {} },
+    function () { nextCalled = true; attached = this; }
+  );
+  assert.equal(nextCalled, true);
+  tokenSessions.delete(token);
+});
+
+test("a valid friend session still cannot use a different account ID in the route", () => {
+  let status = 200;
+  let nextCalled = false;
+  router.requireOwnFriendAccount(
+    {
+      params: { accountId: "22222222222222222222222222222222" },
+      friendUser: { accountId: "11111111111111111111111111111111" },
+    },
+    { status(code) { status = code; return this; }, json() {} },
+    () => { nextCalled = true; }
+  );
+  assert.equal(status, 403);
+  assert.equal(nextCalled, false);
+});
