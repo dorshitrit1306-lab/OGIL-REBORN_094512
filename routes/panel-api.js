@@ -2,6 +2,7 @@ const express = require("express");
 const app = express.Router();
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const config = require("../config/config.json");
 const pkg = require("../package.json");
@@ -94,6 +95,18 @@ function requireShopPermission(permission) {
     }
     return res.status(403).json({ ok: false, reason: "Your account does not have this shop permission." });
   };
+}
+
+function requireGameEventToken(req, res, next) {
+  const expected = String(process.env.OGFN_GAME_EVENT_TOKEN || "");
+  const received = String(req.headers["x-ogfn-game-token"] || "");
+  if (!expected) return res.status(503).json({ ok: false, reason: "OGFN_GAME_EVENT_TOKEN is not configured." });
+  const a = Buffer.from(expected);
+  const b = Buffer.from(received);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return res.status(401).json({ ok: false, reason: "Unauthorized game event source." });
+  }
+  next();
 }
 
 function saveConfig() {
@@ -569,6 +582,21 @@ app.post("/ogfn-panel/api/add", requirePanelAuth, (req, res) => {
     ok: false,
     reason: "Unknown pack. Use: all, vbucks, battlepass, level, or item.",
   });
+});
+
+// Authoritative game servers may report completed rewards here. Client requests are not trusted.
+app.post("/ogfn-panel/api/game-events/reward", requireGameEventToken, (req, res) => {
+  const { accountId, eventType, matchId, eventId } = req.body || {};
+  const target = normalizeTarget(accountId);
+  if (!target.ok) return res.status(400).json(target);
+  ensureAccountProfiles(target.accountId);
+  const rewards = require("../structs/gameRewards");
+  const result = rewards.award(
+    { accountId: target.accountId, eventType, matchId, eventId },
+    (id, amount) => addVbucks(id, amount)
+  );
+  if (result.ok) log.backend(`Rewarded ${result.amount} V-Bucks to ${result.accountId.slice(0, 8)} (${eventType})`);
+  return res.status(result.ok ? 200 : result.duplicate ? 409 : 400).json(result);
 });
 
 app.get("/ogfn-panel/api/shop/settings", requireShopPermission("shop:view"), (req, res) => {
