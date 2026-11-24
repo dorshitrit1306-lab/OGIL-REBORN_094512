@@ -14,12 +14,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run matchmaking tests
+      - name: Run project regression tests
         run: npm test
       - name: Check JavaScript syntax
         run: |
           node --check matchmaker/queue.js
           node --check matchmaker/queue.test.js
+          node --check structs/shopManager.js
+          node --check structs/shopStaff.js
+          node --check structs/gameRewards.js
+          node --check test/shopManager.test.js
+          node --check test/gameRewards.test.js
+          node --check routes/ogil-arena.js
+          node --check routes/panel-api.js
+          node --check panel/app.js
           node --check routes/launcher-matchmaking.js
           node --check launcher/main.js
           node --check launcher/preload.js
