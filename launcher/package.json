@@ -1,7 +1,7 @@
 {
   "name": "velocity-app",
   "version": "1.0.0",
-  "description": "Velocity Launcher - desktop launcher + bundled backend for OG Fortnite private servers.",
+  "description": "OGIL Reborn Launcher and original standalone arena game.",
   "main": "main.js",
   "author": "Velocity",
   "scripts": {
@@ -63,6 +63,13 @@
       {
         "from": "discord-bot-bundle",
         "to": "discord-bot",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../game",
+        "to": "ogil-game",
         "filter": [
           "**/*"
         ]
