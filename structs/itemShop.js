@@ -359,7 +359,8 @@ async function buildCatalog(season = 0) {
 }
 
 function buildCatalogFromPool(rotationKey, expiration, season = 0) {
-  const pool = buildSeasonPool(season);
+  const customItems = require("./customCosmetics").loadCustomCosmetics();
+  const pool = dedupePool([...buildSeasonPool(season), ...customItems]);
   cosmeticPool = cosmeticPool.length ? cosmeticPool : loadPoolFromDisk();
 
   const shell = {
