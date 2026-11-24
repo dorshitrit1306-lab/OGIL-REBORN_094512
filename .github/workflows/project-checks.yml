@@ -41,6 +41,7 @@ jobs:
           node --check routes/launcher-matchmaking.js
           node --check launcher/main.js
           node --check launcher/persistent-backend-config.js
+          node --check test/persistentBackendConfig.test.js
           node --check test/persistentUserData.test.js
           node --check launcher/gameserver-host.js
           node --check test/rebootEngineDiscovery.test.js
