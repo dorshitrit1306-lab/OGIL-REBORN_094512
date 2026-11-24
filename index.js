@@ -8,6 +8,11 @@ const https = require("https");
 const { loadConfig } = require("./utils/config");
 const config = loadConfig();
 const log = require("./utils/logger");
+
+const ownerPanelKey = require("./structs/shopStaff").ensureOwnerToken();
+if (ownerPanelKey.keyFilePath) {
+  log.backend(`Owner panel key file: ${ownerPanelKey.keyFilePath}`);
+}
 const { httpsOptions, resolveCertDir } = require("./structs/certs");
 
 // Shared with the Velocity launcher (%AppData%\velocity-app\certs on Windows).
