@@ -23,7 +23,7 @@
     "port": 7777,
     "playlist": "Playlist_DefaultSolo",
     "region": "NAE",
-    "autoStart": false,
+    "autoStart": true,
     "gamePath": "",
     "dllPath": "",
     "publicIp": ""
