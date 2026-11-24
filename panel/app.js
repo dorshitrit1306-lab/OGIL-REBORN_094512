@@ -1,10 +1,15 @@
 const API = "/ogfn-panel/api";
 
 async function api(path, method = "GET", body) {
-  const opts = { method, headers: { "Content-Type": "application/json" } };
+  const headers = { "Content-Type": "application/json" };
+  const accessToken = sessionStorage.getItem("ogfn-panel-token");
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  const opts = { method, headers };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(API + path, opts);
-  return res.json();
+  const result = await res.json();
+  if (!res.ok && !result.reason) result.reason = `Request failed (${res.status}).`;
+  return result;
 }
 
 function toast(msg, kind = "ok") {
@@ -605,6 +610,138 @@ document.getElementById("hotfixSave").addEventListener("click", async () => {
   } else toast(r.reason || "Failed", "err");
 });
 
+// ---- Shop editor ----
+const shopState = { featured: [], daily: [], items: [], nextRotation: null, permissions: [], role: "viewer" };
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[char]));
+}
+function renderShopTimer() {
+  const el = document.getElementById("shopCountdown");
+  if (!el || !shopState.nextRotation) return;
+  const left = Math.max(0, Math.floor((new Date(shopState.nextRotation).getTime() - Date.now()) / 1000));
+  const d = Math.floor(left / 86400), h = Math.floor((left % 86400) / 3600);
+  const m = Math.floor((left % 3600) / 60), s = left % 60;
+  el.textContent = `${d ? d + "d " : ""}${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+async function loadShopSettings() {
+  const r = await api("/shop/settings");
+  if (!r.ok) { toast(r.reason || "Could not load shop settings", "err"); return; }
+  shopState.featured = [...(r.settings?.draft?.featured || [])];
+  shopState.daily = [...(r.settings?.draft?.daily || [])];
+  shopState.nextRotation = r.nextRotation;
+  shopState.permissions = r.permissions || [];
+  shopState.role = r.role || "viewer";
+  document.getElementById("shopScheduleInfo").textContent =
+    `Role: ${shopState.role} · Draft is scheduled for 19:30 Israel time.`;
+  document.getElementById("shopSaveDraft").hidden = !shopState.permissions.includes("shop:edit") && shopState.role !== "owner";
+  document.getElementById("shopPublishNow").hidden = !shopState.permissions.includes("shop:publish") && shopState.role !== "owner";
+  document.getElementById("shopPartnerCreate").disabled = shopState.role !== "owner";
+  renderShopSelection(); renderShopTimer();
+}
+function renderShopSelection() {
+  for (const section of ["featured", "daily"]) {
+    const target = document.getElementById(section === "featured" ? "shopFeaturedList" : "shopDailyList");
+    const ids = shopState[section];
+    target.innerHTML = ids.length ? ids.map((id) => {
+      const item = shopState.items.find((entry) => entry.templateId === id);
+      return `<div class="shop-selected-item"><div><strong>${escapeHtml(item?.name || id)}</strong><small>${escapeHtml(id)}</small></div><button class="btn tiny" data-shop-remove="${escapeHtml(id)}" data-section="${section}">Remove</button></div>`;
+    }).join("") : '<p class="hint">No items selected yet.</p>';
+    target.querySelectorAll("[data-shop-remove]").forEach((button) => button.addEventListener("click", () => {
+      shopState[section] = shopState[section].filter((id) => id !== button.dataset.shopRemove);
+      renderShopSelection();
+    }));
+  }
+}
+function renderShopCatalog(items) {
+  const target = document.getElementById("shopCatalog");
+  shopState.items = items || [];
+  if (!shopState.items.length) { target.innerHTML = '<p class="hint">No cosmetics found.</p>'; renderShopSelection(); return; }
+  target.innerHTML = shopState.items.map((item) => `<div class="shop-catalog-item">
+    <div><strong>${escapeHtml(item.name || item.templateId)}</strong><small>${escapeHtml(item.templateId)} · ${escapeHtml(item.type || "item")}</small></div>
+    <div class="shop-item-actions"><button class="btn tiny" data-add="featured" data-id="${escapeHtml(item.templateId)}">+ Featured</button><button class="btn tiny" data-add="daily" data-id="${escapeHtml(item.templateId)}">+ Daily</button></div>
+  </div>`).join("");
+  target.querySelectorAll("[data-add]").forEach((button) => button.addEventListener("click", () => {
+    const id = button.dataset.id, section = button.dataset.add;
+    const other = section === "featured" ? "daily" : "featured";
+    if (shopState[section].includes(id) || shopState[other].includes(id)) return toast("Item already selected.", "err");
+    if (shopState[section].length >= 24) return toast("Maximum 24 items per section.", "err");
+    shopState[section].push(id); renderShopSelection();
+  }));
+  renderShopSelection();
+}
+async function searchShopCatalog() {
+  const q = new URLSearchParams({ search: document.getElementById("shopSearch").value.trim(), type: document.getElementById("shopType").value, limit: "200", offset: "0" });
+  const r = await api(`/cosmetics?${q}`);
+  if (!r.items) return toast(r.reason || "Catalog search failed", "err");
+  renderShopCatalog(r.items);
+}
+async function saveShopDraft() {
+  const r = await api("/shop/settings", "POST", { featured: shopState.featured, daily: shopState.daily });
+  if (!r.ok) return toast(r.reason || "Could not save shop", "err");
+  shopState.nextRotation = r.nextRotation; renderShopTimer(); toast("Draft saved for 19:30 Israel time.");
+}
+async function publishShopNow() {
+  if (!confirm("Publish this shop immediately for every player?")) return;
+  const r = await api("/shop/publish", "POST", {});
+  if (!r.ok) return toast(r.reason || "Publish failed", "err");
+  toast(`Shop published: ${r.featured} featured, ${r.daily} daily.`);
+  loadShopSettings();
+}
+async function loadShopPartners() {
+  const list = document.getElementById("shopPartners");
+  const r = await api("/shop/staff");
+  if (!r.ok) { list.innerHTML = '<p class="hint">Partner management is Owner-only.</p>'; return; }
+  const partners = r.partners || [];
+  if (!partners.length) { list.innerHTML = '<p class="hint">No partners added yet.</p>'; return; }
+  list.innerHTML = partners.map((p) => `<div class="shop-selected-item" data-partner="${escapeHtml(p.id)}">
+    <div><strong>${escapeHtml(p.username)}</strong><div class="partner-permissions">
+      <label><input type="checkbox" data-perm="shop:edit" ${p.permissions.includes("shop:edit") ? "checked" : ""}/> Edit</label>
+      <label><input type="checkbox" data-perm="shop:publish" ${p.permissions.includes("shop:publish") ? "checked" : ""}/> Publish now</label>
+    </div></div><div class="shop-item-actions"><button class="btn tiny" data-save-partner>Save</button><button class="btn tiny danger" data-remove-partner>Remove</button></div>
+  </div>`).join("");
+  list.querySelectorAll("[data-save-partner]").forEach((button) => button.addEventListener("click", async () => {
+    const row = button.closest("[data-partner]");
+    const permissions = ["shop:view", ...[...row.querySelectorAll("[data-perm]:checked")].map((el) => el.dataset.perm)];
+    const result = await api(`/shop/staff/${encodeURIComponent(row.dataset.partner)}`, "PATCH", { permissions });
+    result.ok ? toast("Partner permissions saved.") : toast(result.reason || "Failed", "err");
+  }));
+  list.querySelectorAll("[data-remove-partner]").forEach((button) => button.addEventListener("click", async () => {
+    const row = button.closest("[data-partner]");
+    if (!confirm("Remove this partner's shop access?")) return;
+    const result = await api(`/shop/staff/${encodeURIComponent(row.dataset.partner)}`, "DELETE");
+    if (result.ok) { toast("Partner removed."); loadShopPartners(); } else toast(result.reason || "Failed", "err");
+  }));
+}
+function initShopPanel() {
+  document.getElementById("shopSearchBtn").addEventListener("click", searchShopCatalog);
+  document.getElementById("shopSearch").addEventListener("keydown", (e) => { if (e.key === "Enter") searchShopCatalog(); });
+  document.getElementById("shopReload").addEventListener("click", () => { loadShopSettings(); loadShopPartners(); });
+  document.getElementById("shopSaveDraft").addEventListener("click", saveShopDraft);
+  document.getElementById("shopPublishNow").addEventListener("click", publishShopNow);
+  document.getElementById("shopPartnerCreate").addEventListener("click", async () => {
+    const username = document.getElementById("shopPartnerName").value.trim();
+    const permissions = ["shop:view"];
+    if (document.getElementById("partnerCanEdit").checked) permissions.push("shop:edit");
+    if (document.getElementById("partnerCanPublish").checked) permissions.push("shop:publish");
+    const r = await api("/shop/staff", "POST", { username, permissions });
+    if (!r.ok) return toast(r.reason || "Could not create partner", "err");
+    const output = document.getElementById("shopPartnerToken");
+    output.hidden = false; output.textContent = `Partner key (shown once): ${r.token}`;
+    document.getElementById("shopPartnerName").value = "";
+    toast("Partner created. Copy the key and share it privately."); loadShopPartners();
+  });
+  document.getElementById("panelTokenSave").addEventListener("click", async () => {
+    const token = document.getElementById("panelAccessToken").value.trim();
+    if (!token) return toast("Enter an access key.", "err");
+    sessionStorage.setItem("ogfn-panel-token", token);
+    document.getElementById("panelAccessToken").value = "";
+    await loadShopSettings(); await loadShopPartners();
+    toast("Access key set for this browser session.");
+  });
+}
+
 // ---- Settings ----
 async function loadSettings() {
   const c = await api("/config");
@@ -625,6 +762,7 @@ function loadView(view) {
     motd: loadMotd,
     hotfixes: loadHotfixes,
     settings: loadSettings,
+    shop: () => { loadShopSettings(); loadShopPartners(); },
     cosmetics: () => {},
   }[view] || (() => {}))();
 }
@@ -632,8 +770,10 @@ function loadView(view) {
 // Init
 initOwnerPanel();
 initCosmetics();
+initShopPanel();
 loadDashboard();
 setInterval(() => {
+  renderShopTimer();
   const active = document.querySelector(".nav-item.active").dataset.view;
   if (active === "dashboard") loadDashboard();
   if (active === "players") loadPlayers();
