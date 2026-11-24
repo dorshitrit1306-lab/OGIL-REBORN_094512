@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const WebSocket = require("ws");
 
-const config = require("../config/config.json");
+const config = require("../utils/config").loadConfig();
 const log = require("../utils/logger");
 const { setPresence } = require("../structs/playerPresence");
 const { createSession, getLastQueuedAccount } = require("../structs/matchSessions");
