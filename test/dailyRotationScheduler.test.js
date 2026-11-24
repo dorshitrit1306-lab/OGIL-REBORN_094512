@@ -75,3 +75,28 @@ test("daily scheduler applies the latest due shop window after a late process wa
 test("scheduler rejects invalid managers", () => {
   assert.throws(() => startDailyRotationScheduler({ manager: {} }), /shop manager/);
 });
+
+test("rotation persistence errors are reported without stopping the next timer", () => {
+  const manager = fakeManager();
+  const errors = [];
+  const timers = [];
+  const scheduler = startDailyRotationScheduler({
+    manager: {
+      ...manager,
+      activateIfDue() { throw new Error("disk unavailable"); },
+    },
+    onError(error) { errors.push(error.message); },
+    now: () => new Date("2026-11-24T17:00:00.000Z"),
+    setTimer(callback, delay) {
+      const timer = { callback, delay, unref() {} };
+      timers.push(timer);
+      return timer;
+    },
+    clearTimer() {},
+  });
+
+  assert.deepEqual(errors, ["disk unavailable"]);
+  assert.equal(timers.length, 1);
+  assert.equal(timers[0].delay, 30 * 60 * 1000);
+  scheduler.stop();
+});
