@@ -10,7 +10,7 @@
     "setup": "npm install && npm install --prefix launcher && npm install --prefix discord-bot",
     "bot": "node discord-bot/index.js",
     "bot:register": "node discord-bot/register-commands.js",
-    "test": "node --test matchmaker/queue.test.js test/shopManager.test.js test/gameRewards.test.js test/startingVbucks.test.js test/shopStaff.test.js test/ogilArena.test.js test/ogilArenaMatchmaking.test.js test/rebootEngineDiscovery.test.js test/backendRebootEngine.test.js test/itemShopCustomStorefronts.test.js"
+    "test": "node --test matchmaker/queue.test.js test/shopManager.test.js test/gameRewards.test.js test/startingVbucks.test.js test/shopStaff.test.js test/ogilArena.test.js test/ogilArenaMatchmaking.test.js test/rebootEngineDiscovery.test.js test/backendRebootEngine.test.js test/itemShopCustomStorefronts.test.js test/panelRouteSecurity.test.js"
   },
   "keywords": [
     "fortnite",
