@@ -70,7 +70,8 @@ const {
 
 const systemDir = path.join(__dirname, "..", "cloudstorage", "system");
 const certDir = process.env.VELOCITY_CERT_DIR || path.join(__dirname, "..", ".certs");
-const shopCosmeticsPath = path.join(__dirname, "..", "data", "shop-cosmetics.json");
+const shopCosmeticsPath = process.env.VELOCITY_SHOP_COSMETICS_FILE || path.join(__dirname, "..", "data", "shop-cosmetics.json");
+const bundledShopCosmeticsPath = path.join(__dirname, "..", "data", "shop-cosmetics.json");
 const startTime = Date.now();
 
 let shopCatalogCache = null;
@@ -117,12 +118,19 @@ function saveConfig() {
 
 function loadShopCatalog() {
   if (shopCatalogCache) return shopCatalogCache;
-  try {
-    const raw = JSON.parse(fs.readFileSync(shopCosmeticsPath, "utf8"));
-    shopCatalogCache = Array.isArray(raw) ? raw : [];
-  } catch {
-    shopCatalogCache = [];
+  for (const candidate of [...new Set([shopCosmeticsPath, bundledShopCosmeticsPath])]) {
+    if (!fs.existsSync(candidate)) continue;
+    try {
+      const raw = JSON.parse(fs.readFileSync(candidate, "utf8"));
+      if (Array.isArray(raw)) {
+        shopCatalogCache = raw;
+        return shopCatalogCache;
+      }
+    } catch {
+      /* try the bundled fallback */
+    }
   }
+  shopCatalogCache = [];
   return shopCatalogCache;
 }
 
