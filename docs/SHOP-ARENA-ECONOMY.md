@@ -56,3 +56,9 @@ Run:
 `npm test`
 
 The suite covers existing matchmaking tests, Israel 19:30 rotation (including daylight-saving time), and reward deduplication.
+
+## Persistent launcher data
+
+When the desktop launcher starts its bundled backend, it points editable server data at the current Windows user's application-data directory. This includes backend config, player profiles, friend relationships, shop settings, shop partner permissions, reward event de-duplication records, custom cosmetics, custom PAK registry metadata, server metadata, and the shop catalog cache. The live party roster and active matchmaking sessions remain in memory because they represent current connections and are expected to expire when the backend stops.
+
+The backend can still use the repository-local `data/` and `.profiles/` folders when it is started directly outside the desktop launcher.
