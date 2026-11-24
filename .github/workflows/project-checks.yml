@@ -25,6 +25,8 @@ jobs:
           node --check structs/shopManager.js
           node --check structs/shopStaff.js
           node --check structs/gameRewards.js
+          node --check structs/gameserver.js
+          node --check test/backendRebootEngine.test.js
           node --check test/shopManager.test.js
           node --check test/gameRewards.test.js
           node --check test/startingVbucks.test.js
