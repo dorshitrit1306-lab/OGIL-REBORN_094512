@@ -119,7 +119,7 @@ Open **http://127.0.0.1:3551/panel** in your browser (visiting `/` redirects her
 
 The panel talks to the backend over `/ogfn-panel/api/*`.
 
-> Note: accounts appear after a client (or the game) logs in at least once. Profiles are in-memory, so grants/V-Bucks reset on restart until you add persistence.
+> Note: accounts appear after a client (or the game) logs in at least once. Profiles and launcher-managed server data are stored on disk. In packaged Windows installs, the launcher keeps editable settings, profiles, friendships, shop drafts, partner permissions, reward de-duplication records, and custom catalog metadata in the current Windows user's application-data folder so launcher updates do not overwrite them.
 
 For auto-restart on file changes during development:
 
