@@ -1479,3 +1479,26 @@ ipcMain.handle("game:launch", async () => {
 });
 
 ipcMain.on("external:open", (_e, url) => shell.openExternal(url));
+
+
+// ---- OGIL Reborn original game window ----
+let ogilGameWindow = null;
+ipcMain.handle("ogil:open-game", async () => {
+  if (ogilGameWindow && !ogilGameWindow.isDestroyed()) {
+    ogilGameWindow.focus();
+    return { ok: true, alreadyOpen: true };
+  }
+  ogilGameWindow = new BrowserWindow({
+    width: 1280, height: 800, minWidth: 900, minHeight: 600,
+    title: "OGIL Reborn",
+    backgroundColor: "#080d18",
+    autoHideMenuBar: true,
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
+  });
+  ogilGameWindow.on("closed", () => { ogilGameWindow = null; });
+  const gameFile = app.isPackaged
+    ? path.join(process.resourcesPath, "ogil-game", "index.html")
+    : path.join(__dirname, "..", "game", "index.html");
+  await ogilGameWindow.loadFile(gameFile);
+  return { ok: true };
+});
