@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const http = require("http");
 
-const config = require("../config/config.json");
+const config = require("../utils/config").loadConfig();
 const log = require("../utils/logger");
 const { injectDll, launchSuspendedWithDll } = require("./dll-inject");
 const {
