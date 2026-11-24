@@ -35,5 +35,7 @@ jobs:
           node --check panel/app.js
           node --check routes/launcher-matchmaking.js
           node --check launcher/main.js
+          node --check launcher/gameserver-host.js
+          node --check test/rebootEngineDiscovery.test.js
           node --check launcher/preload.js
           node --check launcher/renderer/app.js
