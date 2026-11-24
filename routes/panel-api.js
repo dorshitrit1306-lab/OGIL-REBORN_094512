@@ -5,6 +5,7 @@ const path = require("path");
 
 const config = require("../config/config.json");
 const pkg = require("../package.json");
+const shopStaff = require("../structs/shopStaff");
 const log = require("../utils/logger");
 const {
   listAccounts,
@@ -71,13 +72,28 @@ const startTime = Date.now();
 
 let shopCatalogCache = null;
 
+function requestToken(req) {
+  return req.headers.authorization?.replace(/^Bearer\s+/i, "").trim() || req.headers["x-velocity-token"] || "";
+}
+
 function requirePanelAuth(req, res, next) {
-  const token = config.panelToken;
-  if (!token) return next();
-  const header =
-    req.headers.authorization?.replace(/^Bearer\s+/i, "").trim() || req.headers["x-velocity-token"];
-  if (header === token) return next();
-  return res.status(401).json({ ok: false, reason: "Unauthorized — invalid panel token." });
+  const auth = shopStaff.authenticate(requestToken(req));
+  if (auth?.role === "owner") return next();
+  if (!process.env.OGFN_PANEL_TOKEN && !config.panelToken) {
+    return res.status(503).json({ ok: false, reason: "Set OGFN_PANEL_TOKEN in the server environment before using admin actions." });
+  }
+  return res.status(401).json({ ok: false, reason: "Owner authorization required." });
+}
+
+function requireShopPermission(permission) {
+  return (req, res, next) => {
+    const auth = shopStaff.authenticate(requestToken(req));
+    if (auth?.role === "owner" || auth?.permissions?.includes(permission)) {
+      req.shopStaff = auth;
+      return next();
+    }
+    return res.status(403).json({ ok: false, reason: "Your account does not have this shop permission." });
+  };
 }
 
 function saveConfig() {
@@ -555,28 +571,73 @@ app.post("/ogfn-panel/api/add", requirePanelAuth, (req, res) => {
   });
 });
 
-app.get("/ogfn-panel/api/shop/settings", requirePanelAuth, (req, res) => {
+app.get("/ogfn-panel/api/shop/settings", requireShopPermission("shop:view"), (req, res) => {
   const manager = require("../structs/shopManager");
-  res.json({ ok: true, settings: manager.read(), nextRotation: manager.nextRotation().toISOString(), timeZone: "Asia/Jerusalem" });
+  res.json({
+    ok: true,
+    settings: manager.read(),
+    nextRotation: manager.nextRotation().toISOString(),
+    timeZone: manager.ZONE,
+    permissions: req.shopStaff.permissions,
+    role: req.shopStaff.role,
+  });
 });
 
-app.post("/ogfn-panel/api/shop/settings", requirePanelAuth, async (req, res) => {
+app.post("/ogfn-panel/api/shop/settings", requireShopPermission("shop:edit"), (req, res) => {
   const manager = require("../structs/shopManager");
   const featured = Array.isArray(req.body?.featured) ? req.body.featured : [];
   const daily = Array.isArray(req.body?.daily) ? req.body.daily : [];
   if (featured.length > 24 || daily.length > 24) {
     return res.status(400).json({ ok: false, reason: "A shop section can contain up to 24 items." });
   }
+  if (new Set([...featured, ...daily]).size !== featured.length + daily.length) {
+    return res.status(400).json({ ok: false, reason: "An item can only appear once in the shop." });
+  }
   const available = new Set(searchCosmetics({ limit: 200, offset: 0 }).items.map((item) => item.templateId));
   const selected = [...featured, ...daily];
   if (selected.some((id) => typeof id !== "string" || !available.has(id))) {
     return res.status(400).json({ ok: false, reason: "One or more selected cosmetics are not in the catalog." });
   }
-  const settings = manager.write({ featured, daily, updatedBy: req.body?.updatedBy || "panel" });
-  const { forceRotateShop, buildCatalog } = require("../structs/itemShop");
+  const settings = manager.saveDraft({ featured, daily, updatedBy: req.shopStaff.username });
+  res.json({
+    ok: true,
+    settings,
+    nextRotation: manager.nextRotation().toISOString(),
+    message: "Draft saved. It will become active at 19:30 Israel time.",
+  });
+});
+
+app.post("/ogfn-panel/api/shop/publish", requireShopPermission("shop:publish"), async (req, res) => {
+  const manager = require("../structs/shopManager");
+  manager.publishDraft();
+  const { forceRotateShop, buildCatalog, ROTATION_HOURS } = require("../structs/itemShop");
   forceRotateShop();
   const catalog = await buildCatalog(parseInt(req.body?.season, 10) || 4);
-  res.json({ ok: true, settings, expiration: catalog.expiration });
+  res.json({
+    ok: true,
+    expiration: catalog.expiration,
+    refreshIntervalHrs: ROTATION_HOURS,
+    featured: catalog.storefronts.find((s) => s.name === "BRWeeklyStorefront")?.catalogEntries?.length || 0,
+    daily: catalog.storefronts.find((s) => s.name === "BRDailyStorefront")?.catalogEntries?.length || 0,
+  });
+});
+
+app.get("/ogfn-panel/api/shop/staff", requirePanelAuth, (req, res) => {
+  res.json({ ok: true, partners: shopStaff.listPartners() });
+});
+
+app.post("/ogfn-panel/api/shop/staff", requirePanelAuth, (req, res) => {
+  const result = shopStaff.createPartner(req.body?.username, req.body?.permissions);
+  if (result.ok) log.backend(`Shop partner created: ${result.partner.username}`);
+  res.status(result.ok ? 201 : 400).json(result);
+});
+
+app.patch("/ogfn-panel/api/shop/staff/:id", requirePanelAuth, (req, res) => {
+  res.json(shopStaff.updatePartner(req.params.id, req.body?.permissions));
+});
+
+app.delete("/ogfn-panel/api/shop/staff/:id", requirePanelAuth, (req, res) => {
+  res.json(shopStaff.removePartner(req.params.id));
 });
 
 app.get("/ogfn-panel/api/shop", async (req, res) => {
