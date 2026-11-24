@@ -25,6 +25,7 @@ jobs:
           node --check structs/shopManager.js
           node --check structs/itemShop.js
           node --check test/itemShopCustomStorefronts.test.js
+          node --check test/panelRouteSecurity.test.js
           node --check structs/shopStaff.js
           node --check structs/gameRewards.js
           node --check structs/gameserver.js
