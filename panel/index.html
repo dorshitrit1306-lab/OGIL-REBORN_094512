@@ -34,6 +34,10 @@
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2l2.2 6.8H21l-5.5 4.2 2.1 6.5L12 16.8 6.4 19.5l2.1-6.5L3 8.8h6.8L12 2z"/></svg>
             Cosmetics
           </button>
+          <button class="nav-item" data-view="shop">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 8h16l-1 12H5L4 8z"/><path d="M8 8a4 4 0 018 0M9 13h.01M15 13h.01"/></svg>
+            Item Shop
+          </button>
           <button class="nav-item" data-view="motd">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v13a1 1 0 001 1z"/><path d="M8 8h8M8 12h8"/></svg>
             Message of the Day
@@ -246,6 +250,65 @@
           </div>
         </section>
 
+        <!-- Item Shop -->
+        <section class="view" id="view-shop">
+          <header class="view-header">
+            <h2>Item Shop</h2>
+            <p>Choose the cosmetics for the next daily shop. Drafts activate automatically at 19:30 Israel time.</p>
+          </header>
+          <div class="panel-card shop-schedule-card">
+            <div>
+              <span class="eyebrow">NEXT SHOP ROTATION · ASIA/JERUSALEM</span>
+              <h3 id="shopCountdown">Loading timer…</h3>
+              <p id="shopScheduleInfo" class="hint">Scheduled shop rotation is calculated by the server.</p>
+            </div>
+            <div class="shop-actions">
+              <button class="btn" id="shopReload">Reload</button>
+              <button class="btn primary" id="shopSaveDraft">Save for 19:30</button>
+              <button class="btn danger" id="shopPublishNow">Publish now</button>
+            </div>
+          </div>
+          <div class="panel-card">
+            <div class="shop-search-row">
+              <input id="shopSearch" placeholder="Search cosmetics by name or template ID" />
+              <select id="shopType">
+                <option value="">All types</option>
+                <option value="outfit">Outfits</option>
+                <option value="backpack">Backpacks</option>
+                <option value="pickaxe">Pickaxes</option>
+                <option value="glider">Gliders</option>
+                <option value="emote">Emotes</option>
+              </select>
+              <button class="btn" id="shopSearchBtn">Search</button>
+            </div>
+            <div id="shopCatalog" class="shop-catalog"><p class="hint">Search the catalog to add items.</p></div>
+          </div>
+          <div class="shop-selection-grid">
+            <div class="panel-card">
+              <h3>Featured</h3>
+              <p class="hint">Items shown in the featured section · up to 24.</p>
+              <div id="shopFeaturedList" class="shop-selected-list"></div>
+            </div>
+            <div class="panel-card">
+              <h3>Daily</h3>
+              <p class="hint">Items shown in the daily section · up to 24.</p>
+              <div id="shopDailyList" class="shop-selected-list"></div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h3>Partner permissions</h3>
+            <p class="hint">Create individual partner access keys. Share a new key privately; it is shown only once.</p>
+            <div class="partner-create-row">
+              <input id="shopPartnerName" placeholder="Partner username" />
+              <label class="permission-option"><input type="checkbox" id="partnerCanEdit" /> Edit next shop</label>
+              <label class="permission-option"><input type="checkbox" id="partnerCanPublish" /> Publish immediately</label>
+              <button class="btn primary" id="shopPartnerCreate">Add partner</button>
+            </div>
+            <p id="shopPartnerToken" class="partner-token" hidden></p>
+            <div id="shopPartners" class="shop-selected-list"><p class="hint">Owner access is required to manage partners.</p></div>
+          </div>
+        </section>
+
         <!-- MOTD -->
         <section class="view" id="view-motd">
           <header class="view-header">
@@ -287,6 +350,12 @@
             <h2>Settings</h2>
             <p>Runtime server toggles.</p>
           </header>
+          <div class="panel-card">
+            <h3>Panel access</h3>
+            <p class="hint">Enter your owner or partner key. It is kept only for this browser session.</p>
+            <input id="panelAccessToken" type="password" autocomplete="off" placeholder="Panel access key" />
+            <button class="btn" id="panelTokenSave">Use access key</button>
+          </div>
           <div class="panel-card">
             <label class="switch">
               <span>Enable matchmaking</span>
