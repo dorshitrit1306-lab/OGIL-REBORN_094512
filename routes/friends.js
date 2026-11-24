@@ -25,7 +25,7 @@ const log = require("../utils/logger");
 
 function autoAcceptFriends() {
   try {
-    const config = require("../config/config.json");
+    const config = require("../utils/config").loadConfig();
     return config.bAutoAcceptFriends !== false;
   } catch {
     return true;
