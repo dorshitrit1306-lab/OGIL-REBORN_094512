@@ -110,6 +110,34 @@ async function loadDashboard() {
       </article>`;
     })
     .join("");
+
+  const gameServer = s.gameserver || {};
+  const host = String(gameServer.publicIp || gameServer.ip || "").trim();
+  const port = Number(gameServer.port) || 7777;
+  const isLocalAddress =
+    !host ||
+    host === "localhost" ||
+    host === "::1" ||
+    host.startsWith("127.") ||
+    host === "0.0.0.0";
+  const shareAddress = document.getElementById("shareGameAddress");
+  const shareStatus = document.getElementById("shareGameStatus");
+  const copyButton = document.getElementById("copyGameAddress");
+  const shareValue = isLocalAddress ? "" : `${host}:${port}`;
+
+  shareAddress.textContent = shareValue || "Public address not set";
+  shareStatus.textContent = isLocalAddress
+    ? "Set a public IP or DNS name in Settings before inviting friends outside your local network. The game port must also be reachable."
+    : "Address configured. Make sure the game server port is reachable from your friends' networks.";
+  copyButton.disabled = !shareValue;
+  copyButton.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(shareValue);
+      toast("Game server address copied.");
+    } catch {
+      toast("Clipboard access is unavailable in this browser.", "err");
+    }
+  };
 }
 
 // ---- Players ----
