@@ -745,11 +745,17 @@ function initShopPanel() {
 // ---- Settings ----
 async function loadSettings() {
   const c = await api("/config");
-  document.getElementById("mmEnabled").checked = c.bEnableMatchmaking;
+  document.getElementById("mmEnabled").checked = Boolean(c.bEnableMatchmaking);
+  document.getElementById("publicGameAddress").value = c.gameserver?.publicIp || "";
 }
 document.getElementById("settingsSave").addEventListener("click", async () => {
   const bEnableMatchmaking = document.getElementById("mmEnabled").checked;
-  await api("/config", "POST", { bEnableMatchmaking });
+  const publicIp = document.getElementById("publicGameAddress").value.trim();
+  const result = await api("/config", "POST", {
+    bEnableMatchmaking,
+    gameserver: { publicIp },
+  });
+  if (!result.ok) return toast(result.reason || "Could not save settings.", "err");
   toast("Settings saved!");
 });
 
