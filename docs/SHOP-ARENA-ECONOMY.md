@@ -62,3 +62,7 @@ The suite covers existing matchmaking tests, Israel 19:30 rotation (including da
 When the desktop launcher starts its bundled backend, it points editable server data at the current Windows user's application-data directory. This includes backend config, player profiles, friend relationships, shop settings, shop partner permissions, reward event de-duplication records, custom cosmetics, custom PAK registry metadata, server metadata, and the shop catalog cache. The live party roster and active matchmaking sessions remain in memory because they represent current connections and are expected to expire when the backend stops.
 
 The backend can still use the repository-local `data/` and `.profiles/` folders when it is started directly outside the desktop launcher.
+
+## First-run Owner access
+
+On first backend startup, when no `OGFN_PANEL_TOKEN` environment variable or saved panel token exists, OGIL generates a cryptographically random Owner key. It saves the key in the persistent config and writes a local `Owner-Panel-Key.txt` file inside the launcher's user-data folder. The key path is written to the backend log; the secret itself is never logged. Anyone with this key can manage the server, so keep the file private.
