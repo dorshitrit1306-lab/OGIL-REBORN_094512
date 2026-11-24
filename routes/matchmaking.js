@@ -2,7 +2,8 @@ const express = require("express");
 const app = express.Router();
 const crypto = require("crypto");
 
-const config = require("../config/config.json");
+const { loadConfig } = require("../utils/config");
+const config = loadConfig();
 const { makeToken, nowIso } = require("../utils/functions");
 const { setPresence } = require("../structs/playerPresence");
 const { noteAccountQueued } = require("../matchmaker/matchmaker");
