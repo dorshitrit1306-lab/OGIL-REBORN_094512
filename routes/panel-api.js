@@ -555,6 +555,30 @@ app.post("/ogfn-panel/api/add", requirePanelAuth, (req, res) => {
   });
 });
 
+app.get("/ogfn-panel/api/shop/settings", requirePanelAuth, (req, res) => {
+  const manager = require("../structs/shopManager");
+  res.json({ ok: true, settings: manager.read(), nextRotation: manager.nextRotation().toISOString(), timeZone: "Asia/Jerusalem" });
+});
+
+app.post("/ogfn-panel/api/shop/settings", requirePanelAuth, async (req, res) => {
+  const manager = require("../structs/shopManager");
+  const featured = Array.isArray(req.body?.featured) ? req.body.featured : [];
+  const daily = Array.isArray(req.body?.daily) ? req.body.daily : [];
+  if (featured.length > 24 || daily.length > 24) {
+    return res.status(400).json({ ok: false, reason: "A shop section can contain up to 24 items." });
+  }
+  const available = new Set(searchCosmetics({ limit: 200, offset: 0 }).items.map((item) => item.templateId));
+  const selected = [...featured, ...daily];
+  if (selected.some((id) => typeof id !== "string" || !available.has(id))) {
+    return res.status(400).json({ ok: false, reason: "One or more selected cosmetics are not in the catalog." });
+  }
+  const settings = manager.write({ featured, daily, updatedBy: req.body?.updatedBy || "panel" });
+  const { forceRotateShop, buildCatalog } = require("../structs/itemShop");
+  forceRotateShop();
+  const catalog = await buildCatalog(parseInt(req.body?.season, 10) || 4);
+  res.json({ ok: true, settings, expiration: catalog.expiration });
+});
+
 app.get("/ogfn-panel/api/shop", async (req, res) => {
   try {
     const season = parseInt(req.query.season, 10) || 4;
