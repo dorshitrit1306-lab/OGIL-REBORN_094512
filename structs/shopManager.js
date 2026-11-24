@@ -105,6 +105,15 @@ function rotationWindow(now = new Date()) {
   return { key, expires: next.toISOString() };
 }
 
+function publishDraft(now = new Date()) {
+  const state = read();
+  state.active = { ...state.draft };
+  state.lastRotationKey = rotationWindow(now).key;
+  state.publishedAt = now.toISOString();
+  persist(state);
+  return state;
+}
+
 // Called when the catalog is built. Draft selections become active once per
 // Israeli 19:30 shop window, including after a server restart.
 function activateIfDue(rotationKey) {
@@ -117,4 +126,4 @@ function activateIfDue(rotationKey) {
   return state;
 }
 
-module.exports = { read, saveDraft, nextRotation, rotationWindow, activateIfDue, ZONE };
+module.exports = { read, saveDraft, publishDraft, nextRotation, rotationWindow, activateIfDue, ZONE };
