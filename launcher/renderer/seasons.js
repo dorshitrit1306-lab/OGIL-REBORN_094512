@@ -19,6 +19,7 @@ window.VELOCITY_SEASONS = [
   { id: "c2s2", chapter: 2, season: 2, label: "Chapter 2 Season 2", build: "12.41", folder: "C2-Season-2-v12.41", sizeGB: 43, icon: "season-icons/c2s2.png" },
   { id: "c2s3", chapter: 2, season: 3, label: "Chapter 2 Season 3", build: "13.40", folder: "C2-Season-3-v13.40", sizeGB: 45, icon: "season-icons/c2s3.png" },
   { id: "c2s4", chapter: 2, season: 4, label: "Chapter 2 Season 4", build: "14.60", folder: "C2-Season-4-v14.60", sizeGB: 31, icon: "season-icons/c2s4.png" },
+  { id: "c2s4-1430", chapter: 2, season: 4, label: "Chapter 2 Season 4 · v14.30", build: "14.30", folder: "C2-Season-4-v14.30", icon: "season-icons/c2s4.png" },
   { id: "c2s5", chapter: 2, season: 5, label: "Chapter 2 Season 5", build: "15.30", folder: "C2-Season-5-v15.30", sizeGB: 28, icon: "season-icons/c2s5.png" },
   { id: "c2s6", chapter: 2, season: 6, label: "Chapter 2 Season 6", build: "16.40", folder: "C2-Season-6-v16.40", sizeGB: 30, icon: "season-icons/c2s6.png" },
   { id: "c2s7", chapter: 2, season: 7, label: "Chapter 2 Season 7", build: "17.50", folder: "C2-Season-7-v17.50", sizeGB: 32, icon: "season-icons/c2s7.png" },
