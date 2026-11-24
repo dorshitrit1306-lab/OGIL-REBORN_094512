@@ -83,7 +83,7 @@ function sessionPayload(sessionId, req) {
     ownerId,
     ownerName: `[DS]velocity-${sessionId.slice(0, 8)}`,
     serverName: `[DS]velocity-${sessionId.slice(0, 8)}`,
-    serverAddress: gs().ip,
+    serverAddress: gs().publicIp || gs().ip,
     serverPort: Number(gs().port),
     maxPublicPlayers: 100,
     openPublicPlayers: 99,
