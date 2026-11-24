@@ -5,7 +5,8 @@ const fs = require("fs");
 const http = require("http");
 const https = require("https");
 
-const config = require("./config/config.json");
+const { loadConfig } = require("./utils/config");
+const config = loadConfig();
 const log = require("./utils/logger");
 const { httpsOptions, resolveCertDir } = require("./structs/certs");
 
