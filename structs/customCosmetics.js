@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const CUSTOM_PATH = path.join(__dirname, "..", "data", "custom-cosmetics.json");
+const CUSTOM_PATH = process.env.VELOCITY_CUSTOM_COSMETICS_FILE || path.join(__dirname, "..", "data", "custom-cosmetics.json");
 
 function loadCustomCosmetics() {
   try {
