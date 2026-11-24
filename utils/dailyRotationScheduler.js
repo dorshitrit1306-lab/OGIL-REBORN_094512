@@ -8,6 +8,7 @@
 function startDailyRotationScheduler({
   manager,
   onRotation = () => {},
+  onError = () => {},
   now = () => new Date(),
   setTimer = setTimeout,
   clearTimer = clearTimeout,
@@ -28,6 +29,15 @@ function startDailyRotationScheduler({
     return window;
   }
 
+  function safeActivate() {
+    try {
+      return activateCurrentWindow();
+    } catch (error) {
+      onError(error);
+      return null;
+    }
+  }
+
   function armNext() {
     if (stopped) return;
     const current = now();
@@ -36,16 +46,13 @@ function startDailyRotationScheduler({
     timer = setTimer(() => {
       timer = null;
       if (stopped) return;
-      try {
-        activateCurrentWindow();
-      } finally {
-        armNext();
-      }
+      safeActivate();
+      armNext();
     }, delay);
     if (timer && typeof timer.unref === "function") timer.unref();
   }
 
-  activateCurrentWindow();
+  safeActivate();
   armNext();
 
   return {
