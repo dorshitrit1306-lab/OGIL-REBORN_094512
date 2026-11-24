@@ -10,9 +10,6 @@ contextBridge.exposeInMainWorld("ogfn", {
   saveConfig: (partial) => ipcRenderer.invoke("config:save", partial),
   resolveAsset: (relPath) => ipcRenderer.invoke("asset:resolve", relPath),
 
-  // Original OGIL Reborn game
-  openOgilGame: () => ipcRenderer.invoke("ogil:open-game"),
-
   // Game
   pickGame: () => ipcRenderer.invoke("game:pick"),
   launch: () => ipcRenderer.invoke("game:launch"),
