@@ -357,6 +357,12 @@
             <button class="btn" id="panelTokenSave">Use access key</button>
           </div>
           <div class="panel-card">
+            <h3>Server connection</h3>
+            <label for="publicGameAddress">Public game server address</label>
+            <input id="publicGameAddress" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Public IP or play.example.com" />
+            <p class="hint">For friends joining from outside your local network, enter the host's public IP or DNS name. Leave blank for local/LAN use. The game server port must also be reachable.</p>
+          </div>
+          <div class="panel-card">
             <label class="switch">
               <span>Enable matchmaking</span>
               <input type="checkbox" id="mmEnabled" />
