@@ -44,6 +44,8 @@ jobs:
           node --check routes/launcher-matchmaking.js
           node --check utils/config.js
           node --check utils/cloudstoragePaths.js
+          node --check utils/dailyRotationScheduler.js
+          node --check test/dailyRotationScheduler.test.js
           node --check launcher/main.js
           node --check launcher/persistent-backend-config.js
           node --check test/persistentBackendConfig.test.js
