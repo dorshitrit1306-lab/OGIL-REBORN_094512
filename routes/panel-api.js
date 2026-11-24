@@ -621,7 +621,7 @@ app.post("/ogfn-panel/api/shop/settings", requireShopPermission("shop:edit"), (r
   if (new Set([...featured, ...daily]).size !== featured.length + daily.length) {
     return res.status(400).json({ ok: false, reason: "An item can only appear once in the shop." });
   }
-  const available = new Set(searchCosmetics({ limit: 200, offset: 0 }).items.map((item) => item.templateId));
+  const available = new Set([...loadShopCatalog(), ...loadCustomCosmetics()].map((item) => item.templateId).filter(Boolean));
   const selected = [...featured, ...daily];
   if (selected.some((id) => typeof id !== "string" || !available.has(id))) {
     return res.status(400).json({ ok: false, reason: "One or more selected cosmetics are not in the catalog." });
