@@ -10,6 +10,7 @@ process.env.VELOCITY_CUSTOM_COSMETICS_FILE = path.join(tempDir, "data", "custom-
 process.env.VELOCITY_CUSTOM_PAK_DIR = path.join(tempDir, "custom-paks");
 process.env.VELOCITY_CUSTOM_PAK_REGISTRY = path.join(tempDir, "data", "custom-paks.json");
 process.env.VELOCITY_FRIENDS_STORE = path.join(tempDir, "data", "friends-graph.json");
+process.env.OGFN_ARENA_SELECTIONS_FILE = path.join(tempDir, "data", "arena-selections.json");
 
 test.after(() => {
   for (const key of [
@@ -18,6 +19,7 @@ test.after(() => {
     "VELOCITY_CUSTOM_PAK_DIR",
     "VELOCITY_CUSTOM_PAK_REGISTRY",
     "VELOCITY_FRIENDS_STORE",
+    "OGFN_ARENA_SELECTIONS_FILE",
   ]) delete process.env[key];
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
@@ -102,4 +104,19 @@ test("friend relationships survive module reloads in the persistent user-data fo
   friends = require(modulePath);
   assert.equal(friends.areFriends("player-account-0001", "player-account-0002"), true);
   assert.deepEqual(friends.listFriends("player-account-0002"), ["player-account-0001"]);
+});
+
+test("OGIL Arena mode selection survives module reloads in persistent user data", () => {
+  const modulePath = require.resolve("../structs/arenaModes");
+  delete require.cache[modulePath];
+  let arena = require(modulePath);
+
+  const saved = arena.saveSelection("player-account-0003", "DUOS");
+  assert.equal(saved.ok, true);
+  assert.equal(fs.existsSync(process.env.OGFN_ARENA_SELECTIONS_FILE), true);
+
+  delete require.cache[modulePath];
+  arena = require(modulePath);
+  assert.equal(arena.getSelection("player-account-0003").id, "DUOS");
+  assert.equal(arena.getSelection("player-account-0003").playlist, "Playlist_DefaultDuo");
 });
