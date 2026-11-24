@@ -2,9 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 /**
- * Keep editable backend configuration in the user's data directory.
- * The packaged backend still reads its normal config/config.json path, so
- * the persistent copy is synchronized before the backend process starts.
+ * Seed the user-owned config file once. Never write into the install/resources
+ * directory: installed apps may live under Program Files and be read-only.
  */
 function syncPersistentBackendConfig(bundledConfigPath, persistentConfigPath) {
   if (!bundledConfigPath || !persistentConfigPath) {
@@ -14,9 +13,7 @@ function syncPersistentBackendConfig(bundledConfigPath, persistentConfigPath) {
     throw new Error(`Bundled backend config not found: ${bundledConfigPath}`);
   }
   fs.mkdirSync(path.dirname(persistentConfigPath), { recursive: true });
-  if (fs.existsSync(persistentConfigPath)) {
-    fs.copyFileSync(persistentConfigPath, bundledConfigPath);
-  } else {
+  if (!fs.existsSync(persistentConfigPath)) {
     fs.copyFileSync(bundledConfigPath, persistentConfigPath);
   }
   return persistentConfigPath;
