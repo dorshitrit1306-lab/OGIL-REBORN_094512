@@ -258,7 +258,7 @@ function createCommonCoreProfile(accountId) {
       Currency: {
         templateId: "Currency:MtxPurchased",
         attributes: { platform: "EpicPC" },
-        quantity: 133700,
+        quantity: 2000,
       },
       ...buildBannerItems(),
     },
