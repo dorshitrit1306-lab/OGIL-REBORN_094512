@@ -1,0 +1,82 @@
+name: Build OGIL Reborn portable launcher
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "launcher/**"
+      - "routes/**"
+      - "structs/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/build-ogil-launcher.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out OGIL Reborn
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install OGIL backend dependencies
+        run: npm ci
+
+      - name: Install launcher dependencies
+        working-directory: launcher
+        run: npm ci
+
+      - name: Fetch the pinned Project Reboot source
+        shell: pwsh
+        run: |
+          git clone https://github.com/Milxnor/Project-Reboot-3.0.git third_party/Project-Reboot-3.0
+          git -C third_party/Project-Reboot-3.0 checkout 10c659028ad9d6816f78226483f11a884bf81f57
+
+      - name: Restore Project Reboot native dependencies
+        shell: pwsh
+        run: nuget restore "third_party/Project-Reboot-3.0/Project Reboot 3.0.sln"
+
+      - name: Build Project Reboot engine for builds below Season 20
+        shell: pwsh
+        run: |
+          msbuild "third_party/Project-Reboot-3.0/Project Reboot 3.0.sln" /t:Clean,Build /p:Configuration=Release /p:Platform=x64
+          $out = Join-Path $env:GITHUB_WORKSPACE "third_party/Project-Reboot-3.0/x64/Release"
+          $dll = Get-ChildItem $out -Filter "*.dll" -File | Sort-Object Length -Descending | Select-Object -First 1
+          if (-not $dll) { throw "Project Reboot build did not produce a DLL." }
+          $target = Join-Path $env:GITHUB_WORKSPACE "launcher/gameserver-bundle/dlls"
+          New-Item -ItemType Directory -Force -Path $target | Out-Null
+          Copy-Item $dll.FullName (Join-Path $target "reboot.dll") -Force
+
+      - name: Build Project Reboot engine for S20+ builds
+        shell: pwsh
+        run: |
+          msbuild "third_party/Project-Reboot-3.0/Project Reboot 3.0.sln" /t:Clean,Build /p:Configuration=Release /p:Platform=x64 /p:AboveS20=TRUE
+          $out = Join-Path $env:GITHUB_WORKSPACE "third_party/Project-Reboot-3.0/x64/Release"
+          $dll = Get-ChildItem $out -Filter "*.dll" -File | Sort-Object Length -Descending | Select-Object -First 1
+          if (-not $dll) { throw "Project Reboot S20+ build did not produce a DLL." }
+          $target = Join-Path $env:GITHUB_WORKSPACE "launcher/gameserver-bundle/dlls"
+          Copy-Item $dll.FullName (Join-Path $target "rebootS20.dll") -Force
+
+      - name: Build OGIL Reborn portable launcher
+        working-directory: launcher
+        run: npm run dist:portable
+
+      - name: Upload portable launcher
+        uses: actions/upload-artifact@v4
+        with:
+          name: OGIL-Reborn-Portable
+          path: launcher/dist/Velocity-Portable-*.exe
+          if-no-files-found: error
+          retention-days: 30
