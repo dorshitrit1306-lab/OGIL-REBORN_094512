@@ -25,6 +25,7 @@ const shopRotationScheduler = startDailyRotationScheduler({
     itemShop.forceRotateShop();
     log.backend(`Daily shop window active: ${window.key}`);
   },
+  onError: (error) => log.warn(`Daily shop rotation failed: ${error.message}`),
 });
 
 
