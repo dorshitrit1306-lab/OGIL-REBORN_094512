@@ -5,11 +5,10 @@ const path = require("path");
 const crypto = require("crypto");
 
 const log = require("../utils/logger");
+const { getSystemDir, getUserDir } = require("../utils/cloudstoragePaths");
 
-const systemDir = path.join(__dirname, "..", "cloudstorage", "system");
-const userDir = path.join(__dirname, "..", "cloudstorage", "user");
-fs.mkdirSync(systemDir, { recursive: true });
-fs.mkdirSync(userDir, { recursive: true });
+const systemDir = getSystemDir();
+const userDir = getUserDir();
 
 function fileMeta(dir, file) {
   const full = path.join(dir, file);
