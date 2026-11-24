@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { accountIdFromName } = require("../utils/functions");
 
-const BANS_PATH = path.join(__dirname, "..", "data", "bans.json");
+const BANS_PATH = process.env.VELOCITY_BANS_FILE || path.join(process.env.VELOCITY_DATA_DIR || path.join(__dirname, "..", "data"), "bans.json");
 
 function loadBans() {
   try {
