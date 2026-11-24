@@ -375,26 +375,24 @@ function buildCatalogFromPool(rotationKey, expiration, season = 0) {
 
   if (!pool.length) return shell;
 
-  // An explicitly configured shop takes precedence over the randomized rotation.
-  const shopSettings = shopManager.read();
-  const byId = new Map(pool.map((item) => [item.templateId, item]));
-  const selectedFeatured = shopSettings.featured.map((id) => byId.get(id)).filter(Boolean);
-  const selectedDaily = shopSettings.daily.map((id) => byId.get(id)).filter(Boolean);
-  if (selectedFeatured.length || selectedDaily.length) {
-    const opts = { legacy: usesLegacyStorefront(season), layout: "weekly", saleExpiration: expiration };
+  const scheduleKey = shopManager.rotationWindow().key;
+  const schedule = shopManager.activateIfDue(scheduleKey);
+  if (schedule.configured) {
+    const byId = new Map(pool.map((item) => [item.templateId, item]));
+    const featuredItems = schedule.active.featured.map((id) => byId.get(id)).filter(Boolean);
+    const dailyItems = schedule.active.daily.map((id) => byId.get(id)).filter(Boolean);
+    const entryOpts = { legacy: usesLegacyStorefront(season), layout: "weekly", saleExpiration: expiration };
     return {
       ...shell,
       storefronts: [
         {
           name: "BRWeeklyStorefront",
-          catalogEntries: selectedFeatured.map((item) =>
-            buildCatalogEntry(item, "Featured", "Normal", opts)
-          ),
+          catalogEntries: featuredItems.map((item) => buildCatalogEntry(item, "Featured", "Normal", entryOpts)),
         },
         {
           name: "BRDailyStorefront",
-          catalogEntries: selectedDaily.map((item) =>
-            buildCatalogEntry(item, "Daily", "Small", { ...opts, layout: "daily" })
+          catalogEntries: dailyItems.map((item) =>
+            buildCatalogEntry(item, "Daily", "Small", { ...entryOpts, layout: "daily" })
           ),
         },
       ],
