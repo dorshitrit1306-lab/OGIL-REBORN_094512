@@ -6,7 +6,7 @@ const PAK_DIR =
   (process.env.VELOCITY_USER_DATA
     ? path.join(process.env.VELOCITY_USER_DATA, "custom-paks")
     : path.join(__dirname, "..", "custom-paks"));
-const REGISTRY_PATH = path.join(__dirname, "..", "data", "custom-paks.json");
+const REGISTRY_PATH = process.env.VELOCITY_CUSTOM_PAK_REGISTRY || path.join(__dirname, "..", "data", "custom-paks.json");
 
 function ensurePakDir() {
   fs.mkdirSync(PAK_DIR, { recursive: true });
