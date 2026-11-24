@@ -3,6 +3,7 @@ const app = express.Router();
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { normalizePublicAddress } = require("../utils/networkAddress");
 
 const config = require("../config/config.json");
 const pkg = require("../package.json");
@@ -217,7 +218,13 @@ app.post("/ogfn-panel/api/config", requirePanelAuth, (req, res) => {
   const { bEnableMatchmaking, gameserver } = req.body || {};
   if (typeof bEnableMatchmaking === "boolean") config.bEnableMatchmaking = bEnableMatchmaking;
   if (gameserver && typeof gameserver === "object") {
-    config.gameserver = { ...config.gameserver, ...gameserver };
+    const nextGameserver = { ...config.gameserver, ...gameserver };
+    if (Object.hasOwn(gameserver, "publicIp")) {
+      const address = normalizePublicAddress(gameserver.publicIp);
+      if (!address.ok) return res.status(400).json({ ok: false, reason: address.reason });
+      nextGameserver.publicIp = address.value;
+    }
+    config.gameserver = nextGameserver;
   }
   saveConfig();
   res.json({ ok: true, config });
