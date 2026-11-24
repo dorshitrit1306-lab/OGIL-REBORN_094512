@@ -15,6 +15,19 @@ if (ownerPanelKey.keyFilePath) {
 }
 const { httpsOptions, resolveCertDir } = require("./structs/certs");
 
+// Run the Israel-time shop rotation even when no player requests the catalog.
+const shopManager = require("./structs/shopManager");
+const itemShop = require("./structs/itemShop");
+const { startDailyRotationScheduler } = require("./utils/dailyRotationScheduler");
+const shopRotationScheduler = startDailyRotationScheduler({
+  manager: shopManager,
+  onRotation: (state, window) => {
+    itemShop.forceRotateShop();
+    log.backend(`Daily shop window active: ${window.key}`);
+  },
+});
+
+
 // Shared with the Velocity launcher (%AppData%\velocity-app\certs on Windows).
 const CERT_DIR = resolveCertDir();
 
