@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
+const DATA_DIR = process.env.VELOCITY_DATA_DIR || path.join(__dirname, "..", "data");
 
 function dataPath(name) {
   return path.join(DATA_DIR, name);
