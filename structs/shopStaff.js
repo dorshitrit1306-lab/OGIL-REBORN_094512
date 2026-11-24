@@ -63,7 +63,7 @@ function ensureOwnerToken() {
         "",
         config.panelToken,
         "",
-      ].join("\\n"),
+      ].join("\n"),
       { mode: 0o600 }
     );
   }
