@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const config = require("../config/config.json");
+const config = require("../utils/config").loadConfig();
 
 const FILE = process.env.OGFN_SHOP_STAFF_FILE || path.join(__dirname, "..", "data", "shop-staff.json");
 const ALLOWED = new Set(["shop:view", "shop:edit", "shop:publish"]);
