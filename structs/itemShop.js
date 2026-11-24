@@ -375,6 +375,32 @@ function buildCatalogFromPool(rotationKey, expiration, season = 0) {
 
   if (!pool.length) return shell;
 
+  // An explicitly configured shop takes precedence over the randomized rotation.
+  const shopSettings = shopManager.read();
+  const byId = new Map(pool.map((item) => [item.templateId, item]));
+  const selectedFeatured = shopSettings.featured.map((id) => byId.get(id)).filter(Boolean);
+  const selectedDaily = shopSettings.daily.map((id) => byId.get(id)).filter(Boolean);
+  if (selectedFeatured.length || selectedDaily.length) {
+    const opts = { legacy: usesLegacyStorefront(season), layout: "weekly", saleExpiration: expiration };
+    return {
+      ...shell,
+      storefronts: [
+        {
+          name: "BRWeeklyStorefront",
+          catalogEntries: selectedFeatured.map((item) =>
+            buildCatalogEntry(item, "Featured", "Normal", opts)
+          ),
+        },
+        {
+          name: "BRDailyStorefront",
+          catalogEntries: selectedDaily.map((item) =>
+            buildCatalogEntry(item, "Daily", "Small", { ...opts, layout: "daily" })
+          ),
+        },
+      ],
+    };
+  }
+
   if (usesLegacyStorefront(season)) {
     const preferred = pool.filter((i) => ["outfit", "pickaxe", "emote", "glider", "backpack"].includes(i.type));
     const source = preferred.length >= 12 ? preferred : pool;
