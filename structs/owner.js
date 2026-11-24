@@ -1,4 +1,4 @@
-const config = require("../config/config.json");
+const config = require("../utils/config").loadConfig();
 const { accountIdFromName } = require("../utils/functions");
 
 const DEFAULT_OWNER_TAG = "[OWNER]";
