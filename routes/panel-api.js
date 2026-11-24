@@ -5,7 +5,8 @@ const path = require("path");
 const crypto = require("crypto");
 const { normalizePublicAddress } = require("../utils/networkAddress");
 
-const config = require("../config/config.json");
+const { loadConfig, configPath } = require("../utils/config");
+const config = loadConfig();
 const pkg = require("../package.json");
 const shopStaff = require("../structs/shopStaff");
 const log = require("../utils/logger");
@@ -66,7 +67,7 @@ const {
   claimDailyVbucks,
 } = require("../structs/serverMeta");
 
-const configPath = process.env.VELOCITY_CONFIG_FILE || path.join(__dirname, "..", "config", "config.json");
+
 const systemDir = path.join(__dirname, "..", "cloudstorage", "system");
 const certDir = process.env.VELOCITY_CERT_DIR || path.join(__dirname, "..", ".certs");
 const shopCosmeticsPath = path.join(__dirname, "..", "data", "shop-cosmetics.json");
