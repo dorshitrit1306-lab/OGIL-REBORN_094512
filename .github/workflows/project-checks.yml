@@ -47,6 +47,7 @@ jobs:
           node --check launcher/persistent-backend-config.js
           node --check test/persistentBackendConfig.test.js
           node --check test/persistentShopCatalog.test.js
+          node --check test/ownerPanelBootstrap.test.js
           node --check test/persistentUserData.test.js
           node --check launcher/gameserver-host.js
           node --check test/rebootEngineDiscovery.test.js
