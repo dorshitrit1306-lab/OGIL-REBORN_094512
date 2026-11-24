@@ -8,6 +8,11 @@ const { buildAuthArgs, accountIdFromName } = require("./auth-launch");
 const { getLibCurlLaunchArgs } = require("./libcurl-ssl");
 const { injectDll } = require("./dll-inject");
 
+// Keep game-server lifecycle state explicit; these values are read before
+// the first host attempt and must not depend on accidental globals.
+let gameserverProcess = null;
+let starting = false;
+
 function logPath() {
   return path.join(
     process.env.VELOCITY_USER_DATA || path.join(process.env.APPDATA || "", "velocity-app"),
@@ -76,14 +81,27 @@ function fetchBackendConfig(backendBase) {
   });
 }
 
-function resolveDllPath(cfg, backendCfg) {
+function resolveDllPath(cfg, backendCfg, build = 0) {
   const gs = backendCfg?.gameserver || {};
+  const dllName = Number(build) >= 20 ? "rebootS20.dll" : "reboot.dll";
+  const appData = process.env.APPDATA || "";
+  const localAppData = process.env.LOCALAPPDATA || "";
+  const userData = process.env.VELOCITY_USER_DATA || path.join(appData, "velocity-app");
+  const rebootInstall = process.env.REBOOT_LAUNCHER_DIR || "";
+
   const candidates = [
     cfg.gameserverDll,
     gs.dllPath,
     process.env.VELOCITY_GAMESERVER_DLL,
-    path.join(process.env.VELOCITY_USER_DATA || "", "gameserver", "ProjectReboot.dll"),
-    path.join(process.env.APPDATA || "", "reboot-launcher", "dlls", "ProjectReboot.dll"),
+    path.join(userData, "gameserver", dllName),
+    path.join(rebootInstall, "dlls", dllName),
+    path.join(appData, "Reboot Launcher", "dlls", dllName),
+    path.join(localAppData, "Programs", "Reboot Launcher", "dlls", dllName),
+    path.join(process.env.PROGRAMFILES || "", "Reboot Launcher", "dlls", dllName),
+    // Older Reboot Launcher builds and custom configurations.
+    path.join(appData, "reboot-launcher", "dlls", dllName),
+    path.join(userData, "gameserver", "ProjectReboot.dll"),
+    path.join(appData, "reboot-launcher", "dlls", "ProjectReboot.dll"),
   ].filter(Boolean);
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;
@@ -142,14 +160,14 @@ async function ensureGameserver({ cfg, backendBase, shippingExe, waitForReady = 
   const host = backendCfg.gameserver?.ip || "127.0.0.1";
   if (await isPortOpen(port, host)) return { ok: true, alreadyRunning: true };
 
-  const dllPath = resolveDllPath(cfg, backendCfg);
-  const needsDll = build < 15;
+  const dllPath = resolveDllPath(cfg, backendCfg, build);
+  const needsDll = build < 23;
   if (needsDll && (!dllPath || !fs.existsSync(dllPath))) {
     return {
       ok: false,
       needsDll: true,
       reason:
-        "Chapter 1 (v4.5) needs a Project Reboot gameserver DLL. Install Reboot Launcher, then set gameserverDll in Velocity settings.",
+        "This pre-Chapter 4 build needs the matching Project Reboot gameserver DLL. Install the Reboot engine or set gameserverDll in OGIL settings.",
     };
   }
 
@@ -212,4 +230,4 @@ async function ensureGameserver({ cfg, backendBase, shippingExe, waitForReady = 
   }
 }
 
-module.exports = { ensureGameserver, stopGameserver, isRunning };
+module.exports = { ensureGameserver, stopGameserver, isRunning, resolveDllPath };
