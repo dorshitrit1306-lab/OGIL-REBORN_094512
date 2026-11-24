@@ -37,6 +37,7 @@ function read() {
       lastRotationKey: value.lastRotationKey || null,
       updatedAt: value.updatedAt || null,
       updatedBy: value.updatedBy || null,
+      publishedAt: value.publishedAt || null,
     };
   } catch {
     return defaultState();
@@ -60,6 +61,7 @@ function saveDraft(settings) {
     daily: uniqueIds(settings.daily),
   };
   state.configured = true;
+  if (!state.lastRotationKey) state.lastRotationKey = rotationWindow().key;
   state.updatedAt = new Date().toISOString();
   state.updatedBy = String(settings.updatedBy || "owner").slice(0, 80);
   return persist(state);
@@ -119,7 +121,10 @@ function publishDraft(now = new Date()) {
 function activateIfDue(rotationKey) {
   const state = read();
   if (state.lastRotationKey !== rotationKey) {
-    if (state.configured) state.active = { ...state.draft };
+    if (state.configured) {
+      state.active = { ...state.draft };
+      state.publishedAt = new Date().toISOString();
+    }
     state.lastRotationKey = rotationKey;
     persist(state);
   }
