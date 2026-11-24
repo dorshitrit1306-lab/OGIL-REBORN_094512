@@ -358,6 +358,53 @@ async function buildCatalog(season = 0) {
   return cachedCatalog;
 }
 
+/**
+ * Apply Owner/partner selections without removing legacy season storefronts.
+ * For legacy seasons the BRSeasonStorefront remains populated from the same
+ * eligible cosmetic pool, excluding items already selected for daily/featured.
+ */
+function buildConfiguredStorefronts({ schedule, pool, season, expiration, rotationKey }) {
+  const byId = new Map(pool.map((item) => [item.templateId, item]));
+  const featuredItems = schedule.active.featured.map((id) => byId.get(id)).filter(Boolean);
+  const dailyItems = schedule.active.daily.map((id) => byId.get(id)).filter(Boolean);
+  const legacy = usesLegacyStorefront(season);
+  const entryOpts = { legacy, layout: "weekly", saleExpiration: expiration };
+  const storefronts = [
+    {
+      name: "BRWeeklyStorefront",
+      catalogEntries: featuredItems.map((item) =>
+        buildCatalogEntry(item, "Featured", "Normal", entryOpts)
+      ),
+    },
+    {
+      name: "BRDailyStorefront",
+      catalogEntries: dailyItems.map((item) =>
+        buildCatalogEntry(item, "Daily", "Small", { ...entryOpts, layout: "daily" })
+      ),
+    },
+  ];
+
+  if (legacy) {
+    const seasonItems = pickRandomExcluding(
+      pool,
+      6,
+      `${rotationKey}:season:${season}`,
+      [...featuredItems, ...dailyItems]
+    );
+    storefronts.push({
+      name: "BRSeasonStorefront",
+      catalogEntries: seasonItems.map((item, index) =>
+        buildCatalogEntry(item, `Panel ${index + 1}`, "Normal", {
+          ...entryOpts,
+          layout: "season",
+        })
+      ),
+    });
+  }
+
+  return storefronts;
+}
+
 function buildCatalogFromPool(rotationKey, expiration, season = 0) {
   const customItems = require("./customCosmetics").loadCustomCosmetics();
   const pool = dedupePool([...buildSeasonPool(season), ...customItems]);
@@ -652,6 +699,7 @@ ensurePool()
 
 module.exports = {
   buildCatalog,
+  buildConfiguredStorefronts,
   findOffer,
   purchase,
   ensurePool,
