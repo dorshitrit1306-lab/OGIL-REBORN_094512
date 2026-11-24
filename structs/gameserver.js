@@ -176,14 +176,20 @@ async function waitForPort(port, host, timeoutMs = 120000) {
   return false;
 }
 
-function resolveDllPath(gs) {
+function resolveDllPath(gs, build = 0) {
+  const dllName = Number(build) >= 20 ? "rebootS20.dll" : "reboot.dll";
+  const bundleDir = process.env.VELOCITY_GAMESERVER_BUNDLE_DIR || "";
+  const localAppData = process.env.LOCALAPPDATA || "";
   const candidates = [
     gs.dllPath,
     process.env.VELOCITY_GAMESERVER_DLL,
-    path.join(process.env.LOCALAPPDATA || "", "RebootLauncher", "dlls", "reboot.dll"),
+    path.join(bundleDir, dllName),
+    path.join(process.env.VELOCITY_USER_DATA || "", "gameserver", dllName),
+    path.join(localAppData, "RebootLauncher", "dlls", dllName),
+    path.join(localAppData, "Programs", "Reboot Launcher", "dlls", dllName),
+    path.join(process.env.PROGRAMFILES || "", "Reboot Launcher", "dlls", dllName),
+    path.join(process.env.APPDATA || "", "reboot-launcher", "dlls", dllName),
     path.join(process.env.VELOCITY_USER_DATA || "", "gameserver", "ProjectReboot.dll"),
-    path.join(process.env.APPDATA || "", "velocity-app", "gameserver", "ProjectReboot.dll"),
-    path.join(process.env.APPDATA || "", "reboot-launcher", "dlls", "ProjectReboot.dll"),
   ].filter(Boolean);
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;
@@ -247,14 +253,14 @@ async function ensureGameserver(overrides = {}) {
     };
   }
 
-  const dllPath = resolveDllPath(gs);
-  const needsDll = build < 15;
+  const dllPath = resolveDllPath(gs, build);
+  const needsDll = build < 23;
   if (needsDll && (!dllPath || !fs.existsSync(dllPath))) {
     return {
       ok: false,
       needsDll: true,
       reason:
-        "Chapter 1 gameserver needs Project Reboot (reboot.dll). Install Reboot Launcher or set gameserver.dllPath in config.",
+        "This pre-Chapter 4 gameserver needs the matching Project Reboot engine DLL. Set gameserver.dllPath or install the bundled engine.",
     };
   }
 
@@ -367,18 +373,19 @@ async function gameserverStatus() {
   const port = Number(gs.port || 7777);
   const host = gs.ip || "127.0.0.1";
   const listening = await isPortOpen(port, host);
-  const dllPath = resolveDllPath(gs);
+  const gamePath = resolveGamePath(gs);
+  const dllPath = resolveDllPath(gs, parseBuild(gamePath));
   return {
     listening,
     port,
     host,
     processTracked: Boolean(gameserverPid),
     pid: gameserverPid,
-    gamePath: resolveGamePath(gs) || null,
+    gamePath: gamePath || null,
     dllPath: dllPath || null,
     dllFound: Boolean(dllPath && fs.existsSync(dllPath)),
     autoStart: gs.autoStart !== false,
   };
 }
 
-module.exports = { ensureGameserver, stopGameserver, isPortOpen, waitForPort, gameserverStatus };
+module.exports = { ensureGameserver, stopGameserver, isPortOpen, waitForPort, gameserverStatus, resolveDllPath };
