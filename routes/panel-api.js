@@ -222,7 +222,19 @@ app.post("/ogfn-panel/api/motd", requirePanelAuth, (req, res) => {
 });
 
 // ---- Config (matchmaking toggle etc.) ----
-app.get("/ogfn-panel/api/config", (req, res) => res.json(config));
+app.get("/ogfn-panel/api/config", (req, res) =>
+  res.json({
+    bEnableMatchmaking: Boolean(config.bEnableMatchmaking),
+    gameserver: {
+      ip: config.gameserver?.ip || "",
+      publicIp: config.gameserver?.publicIp || "",
+      port: Number(config.gameserver?.port) || 7777,
+      playlist: config.gameserver?.playlist || "Playlist_DefaultSolo",
+      region: config.gameserver?.region || "NAE",
+      autoStart: config.gameserver?.autoStart !== false,
+    },
+  })
+);
 app.post("/ogfn-panel/api/config", requirePanelAuth, (req, res) => {
   const { bEnableMatchmaking, gameserver } = req.body || {};
   if (typeof bEnableMatchmaking === "boolean") config.bEnableMatchmaking = bEnableMatchmaking;
