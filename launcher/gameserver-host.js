@@ -93,6 +93,8 @@ function resolveDllPath(cfg, backendCfg, build = 0) {
     cfg.gameserverDll,
     gs.dllPath,
     process.env.VELOCITY_GAMESERVER_DLL,
+    process.resourcesPath ? path.join(process.resourcesPath, "gameserver", "dlls", dllName) : "",
+    path.join(__dirname, "gameserver-bundle", "dlls", dllName),
     path.join(userData, "gameserver", dllName),
     path.join(rebootInstall, "dlls", dllName),
     path.join(appData, "Reboot Launcher", "dlls", dllName),
