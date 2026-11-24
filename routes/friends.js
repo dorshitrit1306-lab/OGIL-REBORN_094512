@@ -27,7 +27,7 @@ const { tokenSessions } = require("./auth");
 
 function authenticatedFriendAccount(req, res, next) {
   const authorization = req.headers.authorization || "";
-  const token = authorization.replace(/^Bearer\\s+/i, "").trim();
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
   const session = token && tokenSessions.get(token);
   if (!session?.accountId) {
     return res.status(401).json({ errorCode: "errors.com.epicgames.common.authentication_required" });
