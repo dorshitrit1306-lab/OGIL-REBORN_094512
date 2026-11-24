@@ -1217,6 +1217,18 @@ function startBackend() {
     console.error("Backend not found at", indexPath);
     return;
   }
+
+  const persistentConfigPath = path.join(app.getPath("userData"), "config", "config.json");
+  try {
+    require("./persistent-backend-config").syncPersistentBackendConfig(
+      path.join(getBackendDir(), "config", "config.json"),
+      persistentConfigPath
+    );
+  } catch (error) {
+    console.error("[OGIL] Could not prepare persistent backend config:", error);
+    return;
+  }
+
   backendProcess = spawn(process.execPath, [indexPath], {
     cwd: getBackendDir(),
     env: {
@@ -1226,6 +1238,7 @@ function startBackend() {
       VELOCITY_PROFILE_DIR: path.join(app.getPath("userData"), "profiles"),
       // Writable user-data paths survive launcher updates and reinstallations.
       VELOCITY_DATA_DIR: path.join(app.getPath("userData"), "data"),
+      VELOCITY_CONFIG_FILE: persistentConfigPath,
       VELOCITY_SHOP_CACHE: path.join(app.getPath("userData"), "data", "shop-cache.json"),
       VELOCITY_CUSTOM_COSMETICS_FILE: path.join(app.getPath("userData"), "data", "custom-cosmetics.json"),
       VELOCITY_CUSTOM_PAK_REGISTRY: path.join(app.getPath("userData"), "data", "custom-paks.json"),
