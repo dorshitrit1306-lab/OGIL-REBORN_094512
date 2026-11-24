@@ -1243,6 +1243,7 @@ function startBackend() {
       VELOCITY_CUSTOM_COSMETICS_FILE: path.join(app.getPath("userData"), "data", "custom-cosmetics.json"),
       VELOCITY_CUSTOM_PAK_REGISTRY: path.join(app.getPath("userData"), "data", "custom-paks.json"),
       VELOCITY_FRIENDS_STORE: path.join(app.getPath("userData"), "data", "friends-graph.json"),
+      OGFN_ARENA_SELECTIONS_FILE: path.join(app.getPath("userData"), "data", "arena-selections.json"),
       OGFN_SHOP_SETTINGS_FILE: path.join(app.getPath("userData"), "data", "shop-settings.json"),
       OGFN_SHOP_STAFF_FILE: path.join(app.getPath("userData"), "data", "shop-staff.json"),
       OGFN_REWARD_EVENTS_FILE: path.join(app.getPath("userData"), "data", "reward-events.json"),
