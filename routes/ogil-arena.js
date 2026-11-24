@@ -4,7 +4,7 @@ const path = require("path");
 const router = express.Router();
 const { tokenSessions } = require("./auth");
 
-const FILE = path.join(__dirname, "..", "data", "arena-selections.json");
+const FILE = process.env.OGFN_ARENA_SELECTIONS_FILE || path.join(__dirname, "..", "data", "arena-selections.json");
 const MODES = Object.freeze([
   { id: "SOLO", name: "SOLO", playlist: "Playlist_DefaultSolo", teamSize: 1 },
   { id: "DUOS", name: "DUOS", playlist: "Playlist_DefaultDuo", teamSize: 2 },
