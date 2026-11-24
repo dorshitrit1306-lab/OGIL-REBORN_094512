@@ -34,6 +34,7 @@
     },
     "files": [
       "main.js",
+      "persistent-backend-config.js",
       "preload.js",
       "discord-presence.js",
       "net-setup.js",
