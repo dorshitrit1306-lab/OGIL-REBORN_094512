@@ -11,6 +11,7 @@ process.env.VELOCITY_CUSTOM_PAK_DIR = path.join(tempDir, "custom-paks");
 process.env.VELOCITY_CUSTOM_PAK_REGISTRY = path.join(tempDir, "data", "custom-paks.json");
 process.env.VELOCITY_FRIENDS_STORE = path.join(tempDir, "data", "friends-graph.json");
 process.env.OGFN_ARENA_SELECTIONS_FILE = path.join(tempDir, "data", "arena-selections.json");
+process.env.VELOCITY_BANS_FILE = path.join(tempDir, "data", "bans.json");
 
 test.after(() => {
   for (const key of [
@@ -20,6 +21,7 @@ test.after(() => {
     "VELOCITY_CUSTOM_PAK_REGISTRY",
     "VELOCITY_FRIENDS_STORE",
     "OGFN_ARENA_SELECTIONS_FILE",
+    "VELOCITY_BANS_FILE",
   ]) delete process.env[key];
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
@@ -119,4 +121,24 @@ test("OGIL Arena mode selection survives module reloads in persistent user data"
   arena = require(modulePath);
   assert.equal(arena.getSelection("player-account-0003").id, "DUOS");
   assert.equal(arena.getSelection("player-account-0003").playlist, "Playlist_DefaultDuo");
+});
+
+test("player bans survive module reloads in persistent user data", () => {
+  const modulePath = require.resolve("../structs/bans");
+  delete require.cache[modulePath];
+  let bans = require(modulePath);
+
+  const result = bans.banAccount({
+    accountId: "11111111111111111111111111111111",
+    username: "TestPlayer",
+    reason: "Persistence test",
+    bannedBy: "Owner",
+  });
+  assert.equal(result.ok, true);
+  assert.equal(fs.existsSync(process.env.VELOCITY_BANS_FILE), true);
+
+  delete require.cache[modulePath];
+  bans = require(modulePath);
+  assert.equal(bans.isBanned("11111111111111111111111111111111"), true);
+  assert.equal(bans.listBans()[0].username, "TestPlayer");
 });
