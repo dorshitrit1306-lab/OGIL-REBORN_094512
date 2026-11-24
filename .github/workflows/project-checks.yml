@@ -43,12 +43,14 @@ jobs:
           node --check panel/app.js
           node --check routes/launcher-matchmaking.js
           node --check utils/config.js
+          node --check utils/cloudstoragePaths.js
           node --check launcher/main.js
           node --check launcher/persistent-backend-config.js
           node --check test/persistentBackendConfig.test.js
           node --check test/persistentShopCatalog.test.js
           node --check test/ownerPanelBootstrap.test.js
           node --check test/persistentUserData.test.js
+          node --check test/persistentCloudStorage.test.js
           node --check launcher/gameserver-host.js
           node --check test/rebootEngineDiscovery.test.js
           node --check launcher/preload.js
