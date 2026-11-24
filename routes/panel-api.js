@@ -710,7 +710,8 @@ app.post("/ogfn-panel/api/shop/rotate", requirePanelAuth, async (req, res) => {
   });
 });
 
-app.post("/ogfn-panel/api/buy", async (req, res) => {
+// Owner-only administrative purchase action; never trust a caller-supplied accountId.
+app.post("/ogfn-panel/api/buy", requirePanelAuth, async (req, res) => {
   const target = normalizeTarget(req.body?.accountId || req.body?.username || req.body?.user);
   if (!target.ok) return res.status(400).json(target);
 
