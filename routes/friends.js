@@ -23,6 +23,30 @@ const { pushFriendPending, pushFriendAccepted, pushFriendRemoved } = require("..
 const { displayNameFor } = require("../utils/accounts");
 const log = require("../utils/logger");
 
+const { tokenSessions } = require("./auth");
+
+function authenticatedFriendAccount(req, res, next) {
+  const authorization = req.headers.authorization || "";
+  const token = authorization.replace(/^Bearer\\s+/i, "").trim();
+  const session = token && tokenSessions.get(token);
+  if (!session?.accountId) {
+    return res.status(401).json({ errorCode: "errors.com.epicgames.common.authentication_required" });
+  }
+  req.friendUser = session;
+  next();
+}
+
+function requireOwnFriendAccount(req, res, next) {
+  if (req.friendUser.accountId !== req.params.accountId) {
+    return res.status(403).json({ error: "account_mismatch" });
+  }
+  next();
+}
+
+app.use(authenticatedFriendAccount);
+app.param("accountId", requireOwnFriendAccount);
+
+
 function autoAcceptFriends() {
   try {
     const config = require("../utils/config").loadConfig();
@@ -180,3 +204,5 @@ app.get("/friends/api/v1/:accountId/friends/:friendId", (req, res) => {
 });
 
 module.exports = app;
+module.exports.authenticatedFriendAccount = authenticatedFriendAccount;
+module.exports.requireOwnFriendAccount = requireOwnFriendAccount;
