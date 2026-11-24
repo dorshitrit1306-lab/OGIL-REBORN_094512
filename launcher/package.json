@@ -66,6 +66,13 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "gameserver-bundle",
+        "to": "gameserver",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "asar": true,
