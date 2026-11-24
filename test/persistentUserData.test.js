@@ -9,6 +9,7 @@ process.env.VELOCITY_DATA_DIR = path.join(tempDir, "data");
 process.env.VELOCITY_CUSTOM_COSMETICS_FILE = path.join(tempDir, "data", "custom-cosmetics.json");
 process.env.VELOCITY_CUSTOM_PAK_DIR = path.join(tempDir, "custom-paks");
 process.env.VELOCITY_CUSTOM_PAK_REGISTRY = path.join(tempDir, "data", "custom-paks.json");
+process.env.VELOCITY_FRIENDS_STORE = path.join(tempDir, "data", "friends-graph.json");
 
 test.after(() => {
   for (const key of [
@@ -16,6 +17,7 @@ test.after(() => {
     "VELOCITY_CUSTOM_COSMETICS_FILE",
     "VELOCITY_CUSTOM_PAK_DIR",
     "VELOCITY_CUSTOM_PAK_REGISTRY",
+    "VELOCITY_FRIENDS_STORE",
   ]) delete process.env[key];
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
@@ -84,4 +86,20 @@ test("custom PAK registry and related cosmetic metadata use persistent user data
     cosmetics.findCustomCosmetic("AthenaCharacter:CID_OGIL_PAK_Test").pakFile,
     "ogil-test.pak"
   );
+});
+
+test("friend relationships survive module reloads in the persistent user-data folder", () => {
+  const modulePath = require.resolve("../structs/friendGraph");
+  delete require.cache[modulePath];
+  let friends = require(modulePath);
+
+  friends.registerAccount("player-account-0001");
+  friends.registerAccount("player-account-0002");
+  friends.addFriendship("player-account-0001", "player-account-0002");
+  assert.equal(fs.existsSync(process.env.VELOCITY_FRIENDS_STORE), true);
+
+  delete require.cache[modulePath];
+  friends = require(modulePath);
+  assert.equal(friends.areFriends("player-account-0001", "player-account-0002"), true);
+  assert.deepEqual(friends.listFriends("player-account-0002"), ["player-account-0001"]);
 });
