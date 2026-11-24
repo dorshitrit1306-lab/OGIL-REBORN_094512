@@ -28,6 +28,8 @@ jobs:
           node --check structs/itemShop.js
           node --check test/itemShopCustomStorefronts.test.js
           node --check test/panelRouteSecurity.test.js
+          node --check routes/friends.js
+          node --check test/friendsRouteSecurity.test.js
           node --check structs/shopStaff.js
           node --check structs/partyAccess.js
           node --check routes/party.js
