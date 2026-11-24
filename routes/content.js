@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express.Router();
 
-const config = require("../config/config.json");
+const config = require("../utils/config").loadConfig();
 const { getVersionInfo } = require("../utils/functions");
 
 // ---- Fortnite game content (news, MOTD, backgrounds) ----
