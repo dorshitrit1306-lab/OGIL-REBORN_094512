@@ -692,10 +692,12 @@ function purchase(accountId, offerId, quantity = 1) {
   };
 }
 
-// Warm pool + shop on startup (non-blocking).
-ensurePool()
-  .then(() => buildCatalog())
-  .catch(() => {});
+// Warm pool + shop on startup (non-blocking). Tests stay deterministic/offline.
+if (process.env.NODE_ENV !== "test") {
+  ensurePool()
+    .then(() => buildCatalog())
+    .catch(() => {});
+}
 
 module.exports = {
   buildCatalog,
