@@ -14,6 +14,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install backend dependencies
+        run: npm ci
       - name: Run project regression tests
         run: npm test
       - name: Check JavaScript syntax
