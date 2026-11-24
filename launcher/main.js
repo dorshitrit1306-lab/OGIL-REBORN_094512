@@ -1228,6 +1228,7 @@ function startBackend() {
       VELOCITY_GAME_PATH: loadConfig().gamePath || "",
       VELOCITY_USERNAME: loadConfig().username || "",
       VELOCITY_GAMESERVER_DLL: loadConfig().gameserverDll || "",
+      VELOCITY_GAMESERVER_BUNDLE_DIR: path.join(app.isPackaged ? process.resourcesPath : __dirname, app.isPackaged ? "gameserver/dlls" : "gameserver-bundle/dlls"),
       VELOCITY_CUSTOM_PAK_DIR: path.join(app.getPath("userData"), "custom-paks"),
     },
     stdio: ["ignore", "pipe", "pipe"],
