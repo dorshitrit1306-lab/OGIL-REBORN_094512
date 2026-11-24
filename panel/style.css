@@ -344,3 +344,82 @@ code {
   nav { flex-direction: row; flex-wrap: wrap; }
   .content { padding: 24px 20px; }
 }
+
+
+/* Owner-curated shop */
+.shop-schedule-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.shop-schedule-card h3 {
+  margin: 8px 0 4px;
+  font-size: 28px;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.eyebrow {
+  color: var(--accent, #8d7cff);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+.shop-actions, .shop-search-row, .shop-item-actions, .partner-create-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.shop-search-row input { flex: 1 1 260px; }
+.shop-search-row select { min-width: 140px; }
+.shop-catalog, .shop-selected-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.shop-catalog-item, .shop-selected-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--border, rgba(255,255,255,.1));
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+.shop-catalog-item small, .shop-selected-item small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  word-break: break-all;
+}
+.shop-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.partner-create-row input { flex: 1 1 180px; }
+.permission-option, .partner-permissions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.partner-permissions { display: flex; gap: 14px; margin-top: 8px; }
+.partner-token {
+  padding: 12px;
+  margin: 12px 0 0;
+  border: 1px dashed var(--accent, #8d7cff);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.shop-item-actions .btn { white-space: nowrap; }
+@media (max-width: 760px) {
+  .shop-selection-grid { grid-template-columns: 1fr; }
+  .shop-catalog-item, .shop-selected-item { align-items: flex-start; flex-direction: column; }
+}
