@@ -22,6 +22,8 @@ jobs:
         run: |
           node --check matchmaker/queue.js
           node --check matchmaker/queue.test.js
+          node --check utils/networkAddress.js
+          node --check test/publicGameAddress.test.js
           node --check structs/shopManager.js
           node --check structs/itemShop.js
           node --check test/itemShopCustomStorefronts.test.js
