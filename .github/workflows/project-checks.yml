@@ -29,6 +29,8 @@ jobs:
           node --check test/gameRewards.test.js
           node --check test/startingVbucks.test.js
           node --check routes/ogil-arena.js
+          node --check routes/matchmaking.js
+          node --check test/ogilArenaMatchmaking.test.js
           node --check routes/panel-api.js
           node --check panel/app.js
           node --check routes/launcher-matchmaking.js
