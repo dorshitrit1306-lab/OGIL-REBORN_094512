@@ -137,19 +137,41 @@ const ICON_PLAY = `
   <path d="M8 5.5v13l11-6.5-11-6.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>`;
 
 function refreshLaunchBar() {
-  const textEl = $("#launchText");
+  const meta = getSelectedSeasonMeta();
   const subEl = $("#launchSub");
+  const textEl = $("#launchText");
+  const iconEl = document.querySelector("#launchBtn .play-dl-icon");
   const btn = $("#launchBtn");
+
   if (launchPending) {
     textEl.textContent = "Starting…";
     btn.disabled = true;
     return;
   }
+
+  if (gameRunning) {
+    if (meta?.season) {
+      subEl.textContent = `v${meta.season.build} - ${chapterLabel(meta.season.chapter)}`;
+    }
+    textEl.textContent = "Running";
+    if (iconEl) iconEl.innerHTML = ICON_PLAY;
+    btn.disabled = true;
+    return;
+  }
+
   btn.disabled = false;
-  textEl.textContent = "Play";
-  subEl.textContent = "OGIL Reborn · Original Game";
-  const iconEl = document.querySelector("#launchBtn .play-dl-icon");
-  if (iconEl) iconEl.innerHTML = ICON_PLAY;
+
+  if (!meta?.season) {
+    subEl.textContent = "Select a season in Library";
+    textEl.textContent = "Download";
+    if (iconEl) iconEl.innerHTML = ICON_DOWNLOAD;
+    return;
+  }
+
+  const chLabel = chapterLabel(meta.season.chapter);
+  subEl.textContent = `v${meta.season.build} - ${chLabel}`;
+  textEl.textContent = meta.version.verified ? "Play" : "Download";
+  if (iconEl) iconEl.innerHTML = meta.version.verified ? ICON_PLAY : ICON_DOWNLOAD;
 }
 
 async function refreshAnnouncement() {
@@ -162,17 +184,48 @@ async function refreshAnnouncement() {
 }
 
 $("#launchBtn").addEventListener("click", async () => {
+  const meta = getSelectedSeasonMeta();
+  if (!meta?.version?.verified) {
+    switchView("library");
+    toast("Install and verify a season in Library first.");
+    return;
+  }
+
   launchPending = true;
   refreshLaunchBar();
-  try {
-    const result = await window.ogfn.openOgilGame();
-    if (!result?.ok) toast("Could not open OGIL Reborn.", "err");
-    else toast("OGIL Reborn is opening!");
-  } catch (error) {
-    toast("Game could not be opened: " + (error?.message || "unknown error"), "err");
+
+  let r = await window.ogfn.launch();
+  if (!r.ok && r.needsSetup) {
+    toast("Setting up Fortnite connection… Watch for the Administrator prompt at the bottom of your screen.", "info");
+    const setup = await window.ogfn.setupNet();
+    if (setup.ok) {
+      r = await window.ogfn.launch();
+    } else {
+      toast(setup.reason || "Setup cancelled.", "err");
+      openSettings();
+      refreshNetStatus();
+    }
   }
+
+  launchPending = false;
+
+  if (r.ok) {
+    gameRunning = await window.ogfn.isGameRunning();
+    toast("Fortnite is launching!");
+  } else if (!r.needsSetup) {
+    toast(r.reason, "err");
+    if (/executable|version/i.test(r.reason)) switchView("library");
+  }
+
+  refreshLaunchBar();
+  refreshAnnouncement();
+});
+
+window.ogfn.onGameState((state) => {
+  gameRunning = !!state.running;
   launchPending = false;
   refreshLaunchBar();
+  refreshAnnouncement();
 });
 
 
