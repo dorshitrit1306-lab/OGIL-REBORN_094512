@@ -54,15 +54,15 @@ function uniqueIds(ids) {
   return [...new Set((Array.isArray(ids) ? ids : []).filter((id) => typeof id === "string" && id.trim()))].slice(0, 24);
 }
 
-function saveDraft(settings) {
+function saveDraft(settings, now = new Date()) {
   const state = read();
   state.draft = {
     featured: uniqueIds(settings.featured),
     daily: uniqueIds(settings.daily),
   };
   state.configured = true;
-  if (!state.lastRotationKey) state.lastRotationKey = rotationWindow().key;
-  state.updatedAt = new Date().toISOString();
+  if (!state.lastRotationKey) state.lastRotationKey = rotationWindow(now).key;
+  state.updatedAt = now.toISOString();
   state.updatedBy = String(settings.updatedBy || "owner").slice(0, 80);
   return persist(state);
 }
