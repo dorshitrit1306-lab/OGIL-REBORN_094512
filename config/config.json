@@ -25,7 +25,8 @@
     "region": "NAE",
     "autoStart": false,
     "gamePath": "",
-    "dllPath": ""
+    "dllPath": "",
+    "publicIp": ""
   },
   "message": {
     "enabled": true,
