@@ -68,7 +68,7 @@ const {
 } = require("../structs/serverMeta");
 
 
-const systemDir = path.join(__dirname, "..", "cloudstorage", "system");
+const systemDir = require("../utils/cloudstoragePaths").getSystemDir();
 const certDir = process.env.VELOCITY_CERT_DIR || path.join(__dirname, "..", ".certs");
 const shopCosmeticsPath = process.env.VELOCITY_SHOP_COSMETICS_FILE || path.join(__dirname, "..", "data", "shop-cosmetics.json");
 const bundledShopCosmeticsPath = path.join(__dirname, "..", "data", "shop-cosmetics.json");
