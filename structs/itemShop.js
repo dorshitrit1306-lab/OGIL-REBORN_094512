@@ -13,8 +13,9 @@ const LEGACY_POOL_PATH = path.join(__dirname, "..", "data", "shop-c1-legacy.json
 const CACHE_PATH =
   process.env.VELOCITY_SHOP_CACHE || path.join(__dirname, "..", "data", "shop-cache.json");
 
-/** Shop rotates every 24 hours at UTC midnight. */
+/** Shop rotates daily at 19:30 Israel time. */
 const ROTATION_HOURS = 24;
+const shopManager = require("./shopManager");
 
 /** @type {Array<{name:string,type:string,templateId:string,rarity:string,chapter:number,season:number}>} */
 let cosmeticPool = [];
@@ -23,10 +24,8 @@ let cacheKey = null;
 let rotationNonce = 0;
 
 function rotationWindow() {
-  const d = new Date();
-  const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}-n${rotationNonce}`;
-  const expires = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0, 0));
-  return { key, expires: expires.toISOString() };
+  const window = shopManager.rotationWindow();
+  return { key: `${window.key}-n${rotationNonce}`, expires: window.expires };
 }
 
 function loadLegacyPoolFromDisk() {
