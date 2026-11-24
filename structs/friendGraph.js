@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { nowIso } = require("../utils/functions");
 
-const STORE_PATH = path.join(__dirname, "..", "data", "friends-graph.json");
+const STORE_PATH = process.env.VELOCITY_FRIENDS_STORE || path.join(process.env.VELOCITY_DATA_DIR || path.join(__dirname, "..", "data"), "friends-graph.json");
 
 /** @type {{ accounts: Record<string, { friends: string[], incoming: string[], outgoing: string[], blocked: string[] }> }} */
 let store = { accounts: {} };
