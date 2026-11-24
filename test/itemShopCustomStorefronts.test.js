@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+process.env.NODE_ENV = "test";
 const { buildConfiguredStorefronts } = require("../structs/itemShop");
 
 function item(id, type = "outfit") {
