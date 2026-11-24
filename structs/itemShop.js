@@ -8,7 +8,8 @@ const { nowIso } = require("../utils/functions");
 const { getProfile, saveAccountProfiles } = require("./profiles");
 const log = require("../utils/logger");
 
-const POOL_PATH = path.join(__dirname, "..", "data", "shop-cosmetics.json");
+const BUNDLED_POOL_PATH = path.join(__dirname, "..", "data", "shop-cosmetics.json");
+const POOL_PATH = process.env.VELOCITY_SHOP_COSMETICS_FILE || BUNDLED_POOL_PATH;
 const LEGACY_POOL_PATH = path.join(__dirname, "..", "data", "shop-c1-legacy.json");
 const CACHE_PATH =
   process.env.VELOCITY_SHOP_CACHE || path.join(__dirname, "..", "data", "shop-cache.json");
@@ -38,12 +39,16 @@ function loadLegacyPoolFromDisk() {
 }
 
 function loadPoolFromDisk() {
-  if (!fs.existsSync(POOL_PATH)) return [];
-  try {
-    return JSON.parse(fs.readFileSync(POOL_PATH, "utf8"));
-  } catch {
-    return [];
+  for (const candidate of [...new Set([POOL_PATH, BUNDLED_POOL_PATH])]) {
+    if (!fs.existsSync(candidate)) continue;
+    try {
+      const parsed = JSON.parse(fs.readFileSync(candidate, "utf8"));
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      /* try the bundled fallback */
+    }
   }
+  return [];
 }
 
 function fetchPoolFromApi() {
@@ -705,6 +710,7 @@ module.exports = {
   findOffer,
   purchase,
   ensurePool,
+  loadPoolFromDisk,
   ensureCatalogReady,
   forceRotateShop,
   rotationWindow,
