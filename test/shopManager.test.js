@@ -39,7 +39,7 @@ test("shop rotation respects daylight saving time changes", () => {
 test("a shop draft remains pending until the next rotation", () => {
   const now = new Date("2026-11-24T15:00:00.000Z");
   const currentKey = manager.rotationWindow(now).key;
-  manager.saveDraft({ featured: ["AthenaCharacter:CID_001"], daily: ["AthenaDance:EID_Test"] });
+  manager.saveDraft({ featured: ["AthenaCharacter:CID_001"], daily: ["AthenaDance:EID_Test"] }, now);
   const beforeRotation = manager.activateIfDue(currentKey);
   assert.equal(beforeRotation.active.featured.length, 0);
   assert.deepEqual(beforeRotation.draft.featured, ["AthenaCharacter:CID_001"]);
